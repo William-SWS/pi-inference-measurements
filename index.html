@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medições no Raspberry Pi</title>
+<link rel="stylesheet" href="assets/estilo.css">
+</head>
+<body data-raiz="" data-etapa="">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto">
+  <h1>Medições de inferência no Raspberry Pi</h1>
+  <p>Acompanhamento, em ordem cronológica, das medições do custo de executar o detector de negação de serviço (DoS) em tráfego MQTT num dispositivo de borda: um Raspberry Pi 4 Model B (4 GB, Debian 13, sem ventoinha). Cada etapa é uma bateria de medição, com gráficos, ou uma nota sobre uma decisão ou mudança no método.</p>
+  <p class="discreto">As medições são exploratórias: servem para entender o método e o comportamento do Pi, e nenhum número daqui é resultado final. A latência medida é a <em>latência em processo</em> (só o <code>predict</code>, sem rede, HTTP, JSON nem extração de variáveis). Esta versão pública traz gráficos e números agregados, sem a duração de cada chamada.</p>
+  <h2>Linha do tempo</h2>
+  <ol class="lt" id="linha-do-tempo"></ol>
+</main>
+</div>
+<script src="assets/etapas.js"></script>
+<script src="assets/nav.js"></script>
+</body>
+</html>
