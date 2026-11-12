@@ -58,7 +58,3 @@ There is no build step: GitHub Pages serves the files as they are, and the pages
 4. Add an item at the end of the list in `assets/etapas.js` (`id`, `data` (date), `tipo` (type), `status`, `titulo` (title), `resumo` (summary)).
 
 The home page, the top menu and the previous/next links update on their own.
-
-## Publishing on GitHub Pages
-
-Settings → Pages → *Build and deployment* → Source: **Deploy from a branch** → Branch: `main`, folder `/ (root)`.
