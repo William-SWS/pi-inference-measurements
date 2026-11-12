@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ajustes do lote2 · Medições no Raspberry Pi</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+</head>
+<body data-raiz="../../" data-etapa="2026-11-11-lote2-ordem-sem-registrador">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto">
+  <p id="etapa-meta"></p>
+  <h1>Lote2: sem registrador ao lado, ordem A B C C B A e memória de todas as repetições</h1>
+
+  <h2>Contexto</h2>
+  <p>No lote1, as execuções c1 e c2 foram medidas com um laço ao lado que lia a temperatura e a frequência da CPU a cada 1 s (o "registrador ao lado"). Ele é um exemplo de efeito do observador: a própria medição altera o que é medido. Além disso, o lote1 só gravou a memória da primeira repetição de cada execução.</p>
+
+  <h2>O que mudou no lote2</h2>
+  <ul>
+    <li><strong>Sem registrador ao lado</strong> durante as medições. A temperatura passou a ser lida só antes e depois de cada execução.</li>
+    <li><strong>Ordem A B C C B A</strong>, com A = desktop ligado (<code>ondemand</code>), B = desktop desligado com <code>ondemand</code> e C = desktop desligado com <code>performance</code>. A ordem espelhada serve para compensar o aquecimento do Pi ao longo da bateria. Ela não foi sorteada.</li>
+    <li><strong>Memória de todas as repetições</strong> gravada (em JSONL), não só a da primeira.</li>
+  </ul>
+
+  <h2>Limites que continuam</h2>
+  <ul>
+    <li>Como a ordem não é sorteada e a temperatura sobe ao longo da bateria, ordem e temperatura continuam misturadas.</li>
+    <li>São 5 repetições por execução: o suficiente para ver a variação entre repetições, não para afirmar significância estatística.</li>
+  </ul>
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+</body>
+</html>

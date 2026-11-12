@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reinício com cgroup de memória e PSI · Medições no Raspberry Pi</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+</head>
+<body data-raiz="../../" data-etapa="2026-11-11-reinicio-cgroup-psi">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto">
+  <p id="etapa-meta"></p>
+  <h1>Reinício com o controlador de memória do cgroup e o PSI ligados</h1>
+
+  <h2>O que mudou</h2>
+  <p>Depois da primeira execução (c0: desktop ligado, governor <code>ondemand</code>, 3 repetições), o Pi foi reiniciado com o controlador de memória do cgroup e o PSI (<em>pressure stall information</em>) ligados no kernel. Todas as execuções seguintes, de c1 em diante, foram medidas com essa configuração.</p>
+
+  <h2>Consequência para a leitura dos dados</h2>
+  <ul>
+    <li>c0 fica separada das demais nos gráficos, como "kernel antes do reinício".</li>
+    <li>c0 tem só 3 repetições, contra 5 das outras execuções.</li>
+    <li>Diferenças entre c0 e as demais podem vir do kernel e não da condição medida; não compare c0 com as outras sem essa nota.</li>
+  </ul>
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+</body>
+</html>

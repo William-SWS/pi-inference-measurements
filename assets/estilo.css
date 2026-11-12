@@ -1,0 +1,65 @@
+:root {
+  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-anthropic-serif: Georgia, "Times New Roman", serif;
+  --cds-font-size-caption: 12px; --cds-font-size-body: 14px; --cds-font-size-heading: 18px; --cds-font-size-title: 28px;
+  --cds-font-weight-medium: 600;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 12px; --cds-gap-lg: 20px; --cds-gap-xl: 32px;
+  --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 16px; --cds-pad-xl: 24px;
+  --cds-radius: 8px;
+  --color-fg: #1a1a18; --color-fg-muted: #5f5e5a; --color-bg: #fbfbf9; --color-panel: #ffffff;
+  --color-border-line: #dedcd5; --color-ok: #2f7d4f; --color-warn: #c98a16; --color-bad: #c0392b;
+  --cds-text-secondary: #5f5e5a; --cds-chart-grid: #ebe9e3; --cds-chart-axis: #c9c6bd; --cds-chart-reference: #8a877e;
+  --cds-chart-muted: #a9a69c; --cds-chart-status-critical: #d6402f;
+  --cds-surface-popover: #ffffff; --cds-border: #dedcd5; --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.12);
+  --lp-c0: #2a78d6; --lp-c1: #eb6834; --lp-c2: #2d9b6a; --lp-c3: #8b5cc7;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fg: #ecebe6; --color-fg-muted: #a8a69e; --color-bg: #1b1b19; --color-panel: #242422;
+    --color-border-line: #3a3936; --cds-text-secondary: #a8a69e; --cds-chart-grid: #2f2e2b; --cds-chart-axis: #4a4945;
+    --cds-chart-reference: #8f8c84; --cds-chart-muted: #6e6c66; --cds-chart-status-critical: #f0644f;
+    --cds-surface-popover: #2b2b28; --cds-border: #3a3936; --cds-shadow-popover: 0 4px 16px rgba(0,0,0,.5);
+    --lp-c0: #5b9ce8; --lp-c1: #f08657; --lp-c2: #4fbb88; --lp-c3: #a985e0;
+  }
+}
+html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); }
+
+.dash-select { font: inherit; color: var(--color-fg); background-color: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 6px; padding: 4px 8px; }
+code { font-size: .95em; }
+
+/* ---- estrutura do site ---- */
+.site { max-width: 1180px; margin: 0 auto; padding: 0 16px 48px; }
+#site-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 0; margin-bottom: 20px; border-bottom: 1px solid var(--color-border-line); }
+.site-marca { font-weight: var(--cds-font-weight-medium); color: var(--color-fg); text-decoration: none; }
+.site-marca:hover { text-decoration: underline; }
+.site-pos { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.site-ir { margin-left: auto; max-width: 100%; font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background-color: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: 6px; padding: 4px 8px; }
+@media (max-width: 640px) { .site-ir { margin-left: 0; width: 100%; } }
+#site-pager { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--color-border-line); }
+.site-pag { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); text-decoration: none; color: var(--color-fg); background: var(--color-panel); }
+.site-pag:hover { border-color: var(--lp-c0); }
+.site-prox { text-align: right; grid-column: 2; }
+.site-pag-rot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.site-pag-tit { font-size: var(--cds-font-size-caption); }
+#etapa-meta, .lt-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 8px; font-size: var(--cds-font-size-caption); }
+.site-data { color: var(--color-fg-muted); }
+.site-tipo, .site-status { border-radius: 999px; padding: 1px 8px; border: 1px solid var(--color-border-line); }
+.site-tipo-medicao { border-color: var(--lp-c0); color: var(--lp-c0); }
+.site-tipo-nota { border-color: var(--lp-c1); color: var(--lp-c1); }
+.site-status { color: var(--color-fg-muted); }
+/* linha do tempo */
+.lt { list-style: none; margin: 0; padding: 0 0 0 22px; border-left: 2px solid var(--color-border-line); display: grid; gap: 22px; }
+.lt-item { position: relative; }
+.lt-ponto { position: absolute; left: -30px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-bg); border: 2px solid var(--lp-c1); }
+.lt-medicao .lt-ponto { border-color: var(--lp-c0); background: var(--lp-c0); }
+.lt-titulo { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); color: var(--color-fg); text-decoration: none; }
+.lt-titulo:hover { text-decoration: underline; }
+.lt-resumo { margin: 4px 0 0; color: var(--color-fg-muted); line-height: 1.5; max-width: 75ch; }
+/* páginas de texto (notas e página inicial) */
+.texto { max-width: 72ch; line-height: 1.6; }
+.texto h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 12px; line-height: 1.2; }
+.texto h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 28px 0 8px; }
+.texto p, .texto li { color: var(--color-fg); }
+.texto .discreto { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.texto a { color: var(--lp-c0); }
