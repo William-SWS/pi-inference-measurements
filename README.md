@@ -1,56 +1,64 @@
-# Medições de inferência no Raspberry Pi
+# Inference measurements on the Raspberry Pi
 
-Site estático com o acompanhamento cronológico das medições de inferência do detector de DoS em MQTT num Raspberry Pi 4 (árvore de decisão LowVariance). Medições exploratórias; nenhum número daqui é resultado final.
+Static site that tracks, in chronological order, how much it costs to run a trained machine learning model on an edge device. The site content is in Brazilian Portuguese.
 
-Esta versão é pública e traz só gráficos e números agregados: não inclui a duração de cada chamada.
+## What the dashboard is about
 
-## Estrutura
+The project detects denial-of-service (DoS) attacks in MQTT traffic on edge devices. This site follows the **inference cost** of the detector on the device itself, not its classification quality.
+
+- **Device:** Raspberry Pi 4 Model B (4 GB RAM, Debian 13, no fan, SD card), accessed only over SSH.
+- **Model:** decision tree with the LowVariance feature selector (11 input features), already trained.
+- **What is measured:**
+  - **In-process latency:** the wall-clock time of each `predict` call inside the Python process. It does not include network, HTTP, JSON or feature extraction from packets, so it is not end-to-end detector latency.
+  - **Memory:** the memory the model adds to the process (ΔPSS and ΔUSS, compared against a "null model" that always returns the same class), plus absolute PSS, USS and maxrss.
+- **How it is measured:** each repetition is a fresh process pinned to one thread. For each batch size **B** (1 record per call, like a detector deciding one packet at a time, and 1024 records per call, batch processing), 200 warm-up calls are discarded and 2,000 calls are timed in sequence. One run is one condition measured over several repetitions.
+- **Conditions compared:** graphical desktop running or stopped, CPU frequency governor (`ondemand` or `performance`, the latter fixing the CPU at its maximum frequency), a temperature/frequency logger running alongside the measurement (an observer effect), and the kernel configuration before or after a reboot. The `performance` governor is the main focus.
+
+The measurement pages answer questions such as:
+
+1. Do the median and the p95 change between conditions, and is the difference larger than the variation between repetitions?
+2. Does the tail (p99, slow calls, lag-1 autocorrelation) change, and under which conditions?
+3. How are call durations distributed, and do slow calls come in periodic groups?
+4. What is the effect of the logger running alongside?
+5. Is memory stable across repetitions and runs?
+6. Does latency drift with run order or chip temperature?
+7. How do B = 1 and B = 1024 relate in time per record?
+
+Besides measurement pages, the timeline also has short **notes** recording decisions and changes in the method (for example, a kernel configuration change or a new run order).
+
+### Caveats
+
+- The data is **exploratory**: one model, one Raspberry Pi without a fan. It should not be generalized to other models, and no number here is a final result.
+- Run order was not randomized, so order and temperature are confounded.
+- With few repetitions per run (5), the pages show the spread between repetitions instead of claiming statistical significance.
+- This public version contains only charts and aggregated numbers: it does not include the duration of each individual call.
+
+## Structure
 
 ```
-index.html                 página inicial com a linha do tempo
-assets/etapas.js           lista das etapas, em ordem cronológica (é aqui que a navegação é montada)
-assets/nav.js              barra do topo, "anterior / próxima" e linha do tempo
-assets/estilo.css          cores, fontes e layout (tema claro e escuro)
-assets/dash-shim.js        faz as páginas de medição rodarem sozinhas, com os dados embutidos
+index.html                 home page with the timeline
+assets/etapas.js           list of entries ("etapas"), in chronological order (the navigation is built from it)
+assets/nav.js              top bar, "previous / next" links and the timeline
+assets/estilo.css          colors, fonts and layout (light and dark theme)
+assets/fontes/             IBM Plex Sans and Mono, self-hosted (SIL Open Font License)
+assets/dash-shim.js        lets the measurement pages run on their own, with the data embedded
 assets/d3.min.js           d3 v7.9.0
-etapas/<id>/index.html     uma página por etapa
+etapas/<id>/index.html     one page per entry
 ```
 
-Não há etapa de build: o GitHub Pages serve os arquivos como estão, e as páginas também abrem direto do disco.
+There is no build step: GitHub Pages serves the files as they are, and the pages also open straight from disk, with no internet connection.
 
-## Acrescentar uma etapa
+## Adding an entry
 
-1. Crie a pasta `etapas/<id>/`, com um id que comece pela data (`2026-11-20-lote3`).
-2. Copie o `index.html` de uma etapa do mesmo tipo:
-   - **nota** (texto): copie `etapas/2026-11-11-reinicio-cgroup-psi/index.html` e troque o texto;
-   - **medição** (gráficos): copie `etapas/2026-11-11-lote1-lote2/index.html`; os dados ficam nos blocos `<script type="text/csv" id="csv-...">` no fim da página.
-3. Troque `data-etapa="..."` no `<body>` pelo novo id.
-4. Acrescente um item no fim da lista em `assets/etapas.js` (`id`, `data`, `tipo`, `status`, `titulo`, `resumo`).
+1. Create the folder `etapas/<id>/`, with an id that starts with the date (`2026-11-20-lote3`).
+2. Copy the `index.html` of an entry of the same type:
+   - **note** (text only, `tipo: 'nota'`): copy `etapas/2026-11-11-reinicio-cgroup-psi/index.html` and replace the text;
+   - **measurement** (charts, `tipo: 'medicao'`): copy `etapas/2026-11-11-lote1-lote2/index.html`; the data lives in the `<script type="text/csv" id="csv-...">` blocks at the end of the page.
+3. Change `data-etapa="..."` on the `<body>` to the new id.
+4. Add an item at the end of the list in `assets/etapas.js` (`id`, `data` (date), `tipo` (type), `status`, `titulo` (title), `resumo` (summary)).
 
-A página inicial, o menu do topo e os links de anterior/próxima se atualizam sozinhos.
+The home page, the top menu and the previous/next links update on their own.
 
-## Publicar no GitHub Pages
+## Publishing on GitHub Pages
 
-Settings → Pages → *Build and deployment* → Source: **Deploy from a branch** → Branch: `main`, pasta `/ (root)`.
-
-## Paleta
-
-Contraste pela fórmula WCAG 2.x. "Painel" é o fundo dos módulos; "fundo" é o fundo da página. Texto pede 4,5:1; elementos gráficos pedem 3:1.
-
-| Token | Uso | Claro | Painel / fundo | Escuro | Painel / fundo |
-|---|---|---|---|---|---|
-| `--color-fg` | texto | `#0E1620` | 18,19 / 16,77 | `#E4EBF2` | 14,87 / 15,99 |
-| `--color-fg-muted` | texto secundário | `#4B5A6B` | 7,06 / 6,51 | `#93A3B5` | 6,94 / 7,46 |
-| `--lp-c0` / `--color-accent` | marca, links, foco, série do foco | `#1B5FD0` | 5,84 / 5,39 | `#5C9DFF` | 6,57 / 7,07 |
-| `--lp-c1` | desligado · ondemand | `#00796B` | 5,32 / 4,90 | `#45D0B8` | 9,34 / 10,04 |
-| `--lp-c2` | ligado · ondemand | `#7A2A8F` | 8,22 / 7,58 | `#D46AC0` | 5,64 / 6,06 |
-| `--lp-c3` | registrador ao lado | `#6B6B00` | 5,63 / 5,19 | `#C9C45A` | 9,81 / 10,56 |
-| `--cds-chart-muted` | kernel antigo, referências | `#5F6B78` | 5,44 / 5,01 | `#8A97A6` | 6,01 / 6,46 |
-| `--color-bad` | chamada lenta | `#C42B1C` | 5,66 / 5,22 | `#FF6B5C` | 6,39 / 6,88 |
-| `--color-warn` | ressalvas (borda, ícone) | `#B26B00` | 3,88 sobre `#FFF5E1` | `#E8B23E` | 9,25 sobre `#1C1708` |
-| `--color-warn-fg` | título das ressalvas | `#8A4F00` | 6,06 sobre `#FFF5E1` | `#F0C462` | 10,87 sobre `#1C1708` |
-| `--color-ok` | indicador "Aplicada" | `#1F7A3E` | 5,37 / 4,95 | `#4CC27A` | 7,92 / 8,52 |
-
-Superfícies: fundo `#F3F6F9` / `#0A0F15`, painel `#FFFFFF` / `#101821`, painel 2 `#EEF2F6` / `#0D141C`, borda `#CED7E1` / `#24313F`, cantos `#A9B6C4` / `#3A4D62`.
-
-Daltonismo: a menor distância ΔE (CAM02-UCS) entre as cinco cores de série foi medida em simulação. Em deuteranopia ela fica em 4,9 no tema claro e 7,4 no escuro, e o par mais próximo é verde-azulado × cinza. Em protanopia fica entre 11 e 12,7, e em tritanopia entre 9,2 e 12,1. Nos gráficos, todo grupo tem rótulo de texto, então a cor nunca é a única pista. Azul × vermelho, os dois do histograma, fica acima de 43 em todos os casos.
+Settings → Pages → *Build and deployment* → Source: **Deploy from a branch** → Branch: `main`, folder `/ (root)`.
