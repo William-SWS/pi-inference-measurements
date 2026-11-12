@@ -12,63 +12,29 @@
 <div class="site">
 <nav id="site-nav" aria-label="Navegação do site"></nav>
 <main>
-<style>
-.lp { display: flex; flex-direction: column; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
-.lp-kicker { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
-.lp-titulo { margin: var(--cds-gap-xs) 0 var(--cds-gap-sm); font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); }
-.lp-lede { margin: 0; max-width: 72ch; line-height: 1.5; }
-.lp-lede b, .lp-num { font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
-.lp-foco-rot { margin: 0 0 var(--cds-gap-sm); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
-.lp-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: var(--cds-gap-md); }
-.lp-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); }
-.lp-card-rot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
-.lp-card-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
-.lp-card-un { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); color: var(--color-fg-muted); margin-left: 4px; }
-.lp-card-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
-.lp-ressalvas { border: 1px solid var(--color-border-line); border-left: 3px solid var(--color-warn); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
-.lp-ressalvas h2 { margin: 0 0 var(--cds-gap-xs); font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
-.lp-ressalvas ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: var(--cds-font-size-caption); line-height: 1.45; }
-.lp-sec { display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
-.lp-sec h2 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
-.lp-sec h3 { margin: var(--cds-gap-md) 0 0; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
-.lp-pergunta { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
-.lp-nota { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); line-height: 1.45; max-width: 80ch; }
-.lp-ctrl { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
-.lp-ctrl label { display: flex; align-items: center; gap: 6px; color: var(--color-fg-muted); }
-.lp-legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; padding: 0; list-style: none; }
-.lp-legenda li { display: flex; align-items: center; gap: 6px; }
-.lp-sw { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--cds-chart-muted); }
-.lp-chart { position: relative; width: 100%; min-height: 260px; }
-.lp-chart.lp-baixo { min-height: 200px; }
-.lp-chart svg { display: block; overflow: visible; }
-.lp-chart text { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); fill: var(--cds-text-secondary); }
-.lp-chart .lp-forte { fill: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
-.lp-chart .lp-val { fill: var(--color-fg); font-variant-numeric: tabular-nums; }
-.lp-chart .tick line, .lp-chart .lp-grade line { stroke: var(--cds-chart-grid); }
-.lp-chart .domain { stroke: var(--cds-chart-axis); }
-.lp-chart .tick text { fill: var(--cds-text-secondary); font-size: var(--cds-font-size-caption); }
-.lp-falha { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: var(--cds-pad-md) 0; }
-.lp-tip { position: absolute; pointer-events: none; z-index: 5; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); box-shadow: var(--cds-shadow-popover); border-radius: var(--cds-radius); padding: 6px 8px; font-size: var(--cds-font-size-caption); line-height: 1.4; max-width: 260px; }
-.lp-tip .lp-tip-sec { color: var(--cds-text-secondary); }
-.lp-mem { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--cds-gap-lg); }
-.lp-mem h3 { margin: 0 0 4px; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); }
-.lp-mem .lp-chart { min-height: 170px; }
-.lp-dois { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--cds-gap-lg); }
-.lp-glossario { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); font-size: var(--cds-font-size-caption); }
-.lp-glossario summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); }
-.lp-glossario dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; margin: var(--cds-gap-sm) 0 0; line-height: 1.45; }
-.lp-glossario dt { font-weight: var(--cds-font-weight-medium); }
-.lp-glossario dd { margin: 0; color: var(--color-fg-muted); }
-@media (max-width: 520px) { .lp-glossario dl { grid-template-columns: 1fr; } .lp-glossario dd { margin-bottom: 6px; } }
-[data-dash-source-state=refreshing] { opacity: .5; }
-</style>
 
 <div class="lp">
   <p id="etapa-meta"></p>
-  <header id="topo">
+  <header id="topo" class="lp-topo">
+   <div class="lp-topo-texto">
     <p class="lp-kicker">Árvore de decisão · LowVariance (11 variáveis) · Raspberry Pi 4 Model B, 4 GB, sem ventoinha · medições exploratórias</p>
     <h1 class="lp-titulo">Latência em processo e memória da inferência no Pi</h1>
+    <div class="lp-resumo-painel">
+    <p class="lp-rot">Resumo</p>
     <p class="lp-lede" id="resumo">Com B = 1, a mediana de cada execução fica entre <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_min_ms" data-row="0">—</b> e <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_max_ms" data-row="0">—</b> ms (diferença de <b class="lp-num" data-draw="num" data-source="frase" data-field="dif_entre_execucoes_pct" data-row="0" data-dec="1">—</b>%), enquanto as repetições de uma mesma execução chegam a variar <b class="lp-num" data-draw="num" data-source="frase" data-field="maior_variacao_entre_repeticoes_pct" data-row="0" data-dec="1">—</b>%. O que muda entre as condições é a cauda: em média, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_ligado_pct" data-row="0">—</b>% de chamadas lentas com o desktop ligado, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_desligado_pct" data-row="0">—</b>% com ele desligado e <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_registrador_pct" data-row="0">—</b>% com o registrador ao lado.</p>
+    </div>
+   </div>
+   <section class="lp-dispositivo" id="dispositivo" aria-labelledby="dispositivo-rot">
+    <p class="lp-rot" id="dispositivo-rot">Dispositivo de borda</p>
+    <p class="lp-disp-nome"><span class="lp-led lp-led-acc" aria-hidden="true"></span>Raspberry Pi 4 Model B</p>
+    <dl class="lp-disp-specs">
+     <div><dt>RAM</dt><dd>4 GB</dd></div>
+     <div><dt>Sistema</dt><dd>Debian 13</dd></div>
+     <div><dt>Refrigeração</dt><dd>sem ventoinha</dd></div>
+     <div><dt>Acesso</dt><dd>só por SSH</dd></div>
+    </dl>
+    <p class="lp-disp-estado"><span class="lp-led" aria-hidden="true"></span><span>Limitação por calor ou subtensão: nenhuma nas leituras do lote1 (<span class="lp-mono">throttled = 0x0</span>)</span></p>
+   </section>
   </header>
 
   <section id="foco" class="lp-sec">
@@ -144,7 +110,7 @@
   </section>
 
   <section id="chamadas" class="lp-sec">
-    <h2>Como as durações se distribuem</h2>
+    <h2>Como as durações das chamadas se distribuem?</h2>
     <p class="lp-pergunta">Quantas chamadas caem em cada faixa de duração, juntando as repetições da execução escolhida.</p>
     <div class="lp-ctrl">
       <label>Execução <select class="dash-select" id="sel-exec" aria-label="Execução">
@@ -174,24 +140,24 @@
   </section>
 
   <section id="ordem" class="lp-sec">
-    <h2>Deriva com a ordem e a temperatura (lote2)</h2>
+    <h2>A latência deriva com a ordem e a temperatura? (lote2)</h2>
     <p class="lp-pergunta">As seis execuções do lote2 na ordem real (A B C C B A). Usa a medida e o B escolhidos acima.</p>
     <div class="lp-chart" id="grafico-ordem" data-draw="ordem" data-source="repeticoes_ms mediana_por_execucao execucoes"></div>
     <p class="lp-nota">Acima: cada ponto é uma repetição; a linha liga as medianas. Abaixo: temperatura do chip antes e depois de cada execução. Como a ordem não foi sorteada e a temperatura subiu junto, uma deriva aqui não separa o efeito da ordem do da temperatura.</p>
 
-    <h3 id="ambiente">Frequência e temperatura a cada 1 s (lote1: c1, c2 e repouso)</h3>
+    <h3 id="ambiente">Como variaram a frequência e a temperatura a cada 1 s? (lote1: c1, c2 e repouso)</h3>
     <div class="lp-chart" id="grafico-ambiente" data-draw="ambiente" data-source="ambiente"></div>
     <p class="lp-nota">Só existe para o lote1, durante c1 (ondemand) e c2 (performance), as duas com o registrador ao lado. O trecho c2 contém a medição (2 a 3 minutos, no começo) e depois cerca de 40 minutos de repouso com performance. Todas as leituras deram throttled = 0x0; o limite de limitação do Pi 4 começa em 80 °C.</p>
   </section>
 
   <section id="memoria" class="lp-sec">
-    <h2>Memória (lote2, todas as repetições)</h2>
+    <h2>Quanta memória o modelo usa? (lote2, todas as repetições)</h2>
     <p class="lp-pergunta">O USS ficou entre <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="uss_min" data-row="0" data-dec="3">—</b> e <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="uss_max" data-row="0" data-dec="3">—</b> MiB e o ΔPSS entre <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="dpss_min" data-row="0" data-dec="3">—</b> e <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="dpss_max" data-row="0" data-dec="3">—</b> MiB. O PSS absoluto teve mediana de <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="pss_ligado" data-row="0" data-dec="3">—</b> MiB com o desktop ligado e <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="pss_desligado" data-row="0" data-dec="3">—</b> MiB com ele desligado. No lote1 (só a 1ª repetição), o ΔPSS ficou entre <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="dpss_lote1_min" data-row="0" data-dec="2">—</b> e <b class="lp-num" data-draw="num" data-source="memoria_resumo" data-field="dpss_lote1_max" data-row="0" data-dec="2">—</b> MiB.</p>
     <div class="lp-mem">
-      <div id="mem-dpss"><h3>Memória acrescentada pelo modelo (ΔPSS, MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="delta_pss_MiB" data-source="memoria"></div></div>
-      <div id="mem-duss"><h3>Memória exclusiva acrescentada (ΔUSS, MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="delta_uss_MiB" data-source="memoria"></div></div>
-      <div id="mem-uss"><h3>USS do processo (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="uss_MiB" data-source="memoria"></div></div>
-      <div id="mem-pss"><h3>PSS absoluto do processo (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="pss_MiB" data-source="memoria"></div></div>
+      <div id="mem-dpss"><h3>Quanto o modelo acrescenta? ΔPSS (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="delta_pss_MiB" data-source="memoria"></div></div>
+      <div id="mem-duss"><h3>Quanto acrescenta de memória exclusiva? ΔUSS (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="delta_uss_MiB" data-source="memoria"></div></div>
+      <div id="mem-uss"><h3>Quanta memória exclusiva o processo tem? USS (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="uss_MiB" data-source="memoria"></div></div>
+      <div id="mem-pss"><h3>Qual é o PSS absoluto do processo? PSS (MiB)</h3><div class="lp-chart" data-draw="mem" data-campo="pss_MiB" data-source="memoria"></div></div>
     </div>
     <p class="lp-nota">O PSS divide as páginas compartilhadas entre os processos que as usam, então depende de quantos outros processos existem (por exemplo, a sessão gráfica). O ΔPSS desconta o modelo nulo do mesmo processo e o USS conta só a memória exclusiva. Atenção: cada painel tem a própria escala, bem estreita.</p>
   </section>
@@ -260,7 +226,7 @@
     if (fontes.some((d) => d.status !== 'ok' || !d.data)) { el.replaceChildren('—'); return false; }
     return true;
   };
-  LP.eixoTexto = (s) => s.selectAll('text').style('fill', 'var(--cds-text-secondary)').style('font-size', 'var(--cds-font-size-caption)').style('font-family', 'var(--font-anthropic-sans)');
+  LP.eixoTexto = (s) => s.selectAll('text').style('fill', 'var(--cds-text-secondary)').style('font-size', 'var(--cds-font-size-caption)').style('font-family', 'var(--font-mono)');
   LP.tip = (host) => {
     const t = document.createElement('div'); t.className = 'lp-tip'; t.hidden = true; host.appendChild(t);
     return {
@@ -591,7 +557,8 @@ dash.draw('ordem', (el) => {
       .on('mousemove', (ev, r) => tip.show(ev, [LP.EXEC[e.execucao].nome, 'Repetição ' + (+r.repeticao + 1) + ' · ' + info.rot + ': ' + LP.f(r[met], info.dec) + (info.un ? ' ' + info.un : ''), 'id: ' + e.execucao]))
       .on('mouseleave', () => tip.hide());
     const md = meds.find((r) => r.execucao === e.execucao);
-    if (md) svg.append('text').attr('class', 'lp-val').attr('x', cx(e.execucao)).attr('y', ys(md[met]) - 10).attr('text-anchor', 'middle')
+    if (md) svg.append('text').attr('class', 'lp-val').attr('x', cx(e.execucao) + Math.min(5, xb.bandwidth() / 8) * 3 + 6).attr('y', ys(md[met]) + 4).attr('text-anchor', 'start')
+      .style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3)
       .attr('data-source', 'mediana_por_execucao').attr('data-field', met).attr('data-where', 'chave=' + LP.enc(e.execucao + '|' + B))
       .text(LP.f(md[met], info.dec));
     // rótulos do eixo x
@@ -682,7 +649,7 @@ dash.draw('mem', (el) => {
   const ext = d3.extent(vals), pad = Math.max((ext[1] - ext[0]) * 0.1, 0.005);
   const xs = d3.scaleLinear().domain([ext[0] - pad, ext[1] + pad]).range([labW + 6, W - 8]).nice(3);
   const ax = svg.append('g').attr('transform', 'translate(0,' + (top + execs.length * rowH) + ')')
-    .call(d3.axisBottom(xs).ticks(W < 400 ? 3 : 4).tickFormat((v) => LP.f(v, 2)).tickSize(-(execs.length * rowH)).tickSizeOuter(0));
+    .call(d3.axisBottom(xs).ticks(Math.max(2, Math.min(4, Math.floor((W - labW - 14) / (LP.textW(svg, [LP.f(xs.domain()[1], 2)]) + 18))))).tickFormat((v) => LP.f(v, 2)).tickSize(-(execs.length * rowH)).tickSizeOuter(0));
   ax.select('.domain').remove(); ax.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)'); LP.eixoTexto(ax);
   const tip = LP.tip(el);
   execs.forEach((id, i) => {

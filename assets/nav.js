@@ -14,6 +14,9 @@
   const fmtData = (iso) => { const [a, m, d] = iso.split('-'); return +d + ' ' + meses[+m - 1] + ' ' + a; };
   const tipoRot = { medicao: 'Medição', nota: 'Nota' };
   const href = (e) => raiz + 'etapas/' + e.id + '/';
+  // Classe do chip de status: "Exploratória" -> site-status-exploratoria (a cor do indicador sai do CSS).
+  const slug = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  const status = (t) => el('span', 'site-status site-status-' + slug(t), t);
   const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
 
   // Barra do topo
@@ -54,7 +57,7 @@
     p.replaceChildren(
       el('span', 'site-data', fmtData(e.data)),
       el('span', 'site-tipo site-tipo-' + e.tipo, tipoRot[e.tipo] || e.tipo),
-      el('span', 'site-status', e.status)
+      status(e.status)
     );
   });
 
@@ -63,7 +66,8 @@
     ol.replaceChildren(...etapas.map((e, i) => {
       const li = el('li', 'lt-item lt-' + e.tipo + (i === etapas.length - 1 ? ' lt-ultima' : ''));
       const meta = el('div', 'lt-meta');
-      meta.append(el('span', 'site-data', fmtData(e.data)), el('span', 'site-tipo site-tipo-' + e.tipo, tipoRot[e.tipo] || e.tipo), el('span', 'site-status', e.status));
+      meta.append(el('span', 'site-data', fmtData(e.data)), el('span', 'site-tipo site-tipo-' + e.tipo, tipoRot[e.tipo] || e.tipo), status(e.status));
+      if (i === etapas.length - 1) meta.append(el('span', 'lt-recente', 'Mais recente'));
       const a = el('a', 'lt-titulo', e.titulo); a.href = href(e);
       li.append(el('span', 'lt-ponto'), meta, a, el('p', 'lt-resumo', e.resumo));
       return li;
