@@ -30,5 +30,13 @@ window.ETAPAS = [
     status: 'Exploratória',
     titulo: 'Primeiras medições: lote1 e lote2',
     resumo: 'Latência em processo e memória da árvore de decisão LowVariance em 11 execuções, com foco no governor performance.'
+  },
+  {
+    id: '2026-11-12-bateria-modelos',
+    data: '2026-11-12',
+    tipo: 'medicao',
+    status: 'Exploratória',
+    titulo: 'Bateria de referência: 7 modelos em 11 configurações',
+    resumo: 'Latência em processo e memória de 7 modelos (11 configurações com os seletores) na condição de referência: desktop desligado e governor performance.'
   }
 ];

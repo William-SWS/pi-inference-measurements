@@ -337,6 +337,21 @@ code, kbd, samp { font-family: var(--font-mono); font-size: .9em; background: va
 .lp-mem > div { min-width: 0; }
 .lp-mem h3 { margin: 0 0 6px; padding: 0; border: 0; font-size: 13px; font-weight: var(--cds-font-weight-medium); }
 .lp-mem .lp-chart { min-height: 170px; }
+.lp-mk { font-family: var(--font-mono); color: var(--color-fg); }
+/* tabelas das páginas de medição: rolam dentro do módulo em tela estreita */
+.lp-tabela-rolagem { overflow-x: auto; }
+.lp-tabela { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); }
+.lp-tabela th, .lp-tabela td { padding: 6px 10px; border-bottom: 1px solid var(--color-border-line); text-align: right; white-space: nowrap; }
+.lp-tabela th { font-family: var(--font-mono); font-size: var(--cds-font-size-micro); font-weight: 500; letter-spacing: .02em; color: var(--color-fg-muted); vertical-align: bottom; white-space: normal; min-width: 80px; } /* sem caixa alta: viraria µs em ΜS */
+.lp-tabela th:first-child, .lp-tabela td:first-child { text-align: left; font-family: var(--font-sans); }
+.lp-tabela td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--color-fg-muted); }
+.lp-tabela td:first-child { color: var(--color-fg); white-space: normal; min-width: 150px; }
+.lp-tabela .lp-sw { margin-right: 8px; }
+.lp-tabela .lp-destaque { font-weight: 600; color: var(--color-fg); }
+.lp-tabela tr.lp-sep td { border-top: 1px solid var(--color-border-strong); }
+.lp-barra-cel { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.lp-barra-trilho { width: 90px; height: 8px; background: var(--color-panel-2); flex: none; }
+.lp-barra { display: block; height: 100%; }
 .lp-dois { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--cds-gap-lg); }
 .lp-glossario { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); font-size: var(--cds-font-size-caption); }
 .lp-glossario summary { cursor: pointer; font-family: var(--font-mono); font-size: var(--cds-font-size-caption); font-weight: 500; text-transform: uppercase; letter-spacing: .06em; color: var(--color-fg); padding: 8px 0; }
