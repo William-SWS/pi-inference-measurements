@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SLA via HTTP · Medições no Raspberry Pi</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+<script src="../../assets/d3.min.js"></script>
+<script src="../../assets/dash-shim.js"></script>
+</head>
+<body data-raiz="../../" data-etapa="2026-11-13-sla-http">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main>
+
+<div class="lp">
+  <p id="etapa-meta"></p>
+  <header id="topo" class="lp-topo">
+   <div class="lp-topo-texto">
+    <p class="lp-kicker">Detecção de ataques DoS em tráfego MQTT · Raspberry Pi 4 · bateria do SLA via HTTP de 13/11/2026 · medições exploratórias</p>
+    <h1 class="lp-titulo">O serviço de inferência responde em até 10 ms quando chamado por HTTP?</h1>
+    <div class="lp-resumo-painel">
+    <p class="lp-rot">Resumo</p>
+    <p class="lp-lede" id="resumo">Chamado por HTTP no próprio Pi, o serviço cumpre o limite de 10 ms no p95 com <b class="lp-num" data-draw="num" data-source="resumo" data-field="n_passa" data-dec="0">—</b> dos <b class="lp-num" data-draw="num" data-source="resumo" data-field="n_total" data-dec="0">—</b> modelos, pela regra fixada antes das medições. DecisionTree, LDA e GradientBoosting passam com sobra (p95 de <b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_DecisionTree">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_GradientBoosting">—</b> ms). GaussianNB e QDA passam por pouco (<b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_GaussianNB">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_QDA">—</b> ms), e o SVM falha por pouco (<b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_SVM">—</b> ms); esses três estão perto demais do limite para um veredito firme. A RandomForest falha com <b class="lp-num" data-draw="num" data-source="resumo" data-field="p95_RandomForest">—</b> ms. Antes de o modelo rodar, o HTTP sozinho já consome cerca de <b class="lp-num" data-draw="num" data-source="resumo" data-field="piso_med">—</b> ms, um quarto do orçamento.</p>
+    </div>
+   </div>
+   <section class="lp-dispositivo" id="dispositivo" aria-labelledby="dispositivo-rot">
+    <p class="lp-rot" id="dispositivo-rot">Dispositivo de borda</p>
+    <p class="lp-disp-nome"><span class="lp-led lp-led-acc" aria-hidden="true"></span>Raspberry Pi 4 Model B</p>
+    <dl class="lp-disp-specs">
+     <div><dt>RAM</dt><dd>4 GB</dd></div>
+     <div><dt>Sistema</dt><dd>Debian 13</dd></div>
+     <div><dt>Refrigeração</dt><dd>sem ventoinha</dd></div>
+     <div><dt>Acesso</dt><dd>só por SSH</dd></div>
+    </dl>
+    <p class="lp-disp-estado"><span class="lp-led" aria-hidden="true"></span><span>Redução de frequência por calor ou por falta de tensão: nenhuma em <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_ok" data-dec="0">—</span> de <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_leituras" data-dec="0">—</span> leituras (<span class="lp-mono">throttled = 0x0</span>)</span></p>
+   </section>
+  </header>
+
+  <section class="lp-guia" id="como-ler" aria-labelledby="como-ler-tit">
+    <h2 id="como-ler-tit">Como ler esta página</h2>
+    <p class="lp-guia-intro">O projeto quer detectar ataques de negação de serviço (DoS) em tráfego MQTT num aparelho pequeno, o Raspberry Pi. A etapa anterior mediu só o tempo do modelo dentro do programa. Esta mede o serviço de inferência de verdade: um servidor web que recebe os dados de um pacote por HTTP, roda o modelo e devolve a classificação. A pergunta é se ele responde dentro do limite do projeto. A página não diz se os modelos acertam.</p>
+    <dl>
+      <div><dt>Requisição e endpoints</dt><dd>Cada requisição manda os dados de um pacote (B = 1) e espera a resposta. <code>/predict</code> recebe os dados em formato binário; <code>/predict-json</code>, em JSON; <code>/ping</code> responde sem rodar modelo nenhum.</dd></div>
+      <div><dt>Limite e veredito</dt><dd>O projeto quer p95 ≤ 10 ms no <code>/predict</code>. Pela regra fixada antes das medições, o modelo <b>passa</b> se todo o intervalo do p95 fica até 10 ms, <b>falha</b> se todo ele fica acima, e é <b>inconclusivo</b> se o intervalo cruza os 10 ms.</dd></div>
+      <div><dt>p50, p95, p99</dt><dd>Percentis dos tempos das requisições. p50 (mediana): metade levou até esse tempo. p95: só 1 requisição em cada 20 foi mais lenta. p99: só 1 em cada 100.</dd></div>
+      <div><dt>Intervalo (IC)</dt><dd>Intervalo de 95% em volta do p95 e do p99: a faixa de valores compatível com estas medições. É exploratório e não cobre outros aparelhos nem outros dias.</dd></div>
+      <div><dt>Piso do HTTP</dt><dd>O p50 do <code>/ping</code>: quanto custam o servidor, a leitura da requisição e o cliente, antes de qualquer modelo rodar.</dd></div>
+      <div><dt>Loopback</dt><dd>Servidor e cliente rodam no mesmo Pi (endereço 127.0.0.1), em núcleos separados. A requisição não passa por rede nem Wi-Fi.</dd></div>
+      <div><dt>Rodada</dt><dd>Uma passada pelos 7 modelos, cada um com um servidor novo, 200 requisições de aquecimento descartadas e 2.000 cronometradas por endpoint. Foram 5 rodadas; as pares rodaram os modelos em ordem inversa.</dd></div>
+      <div><dt>Canário</dt><dd>Uma tarefa de custo fixo, de CPU ou de memória, que não depende do modelo. Medida antes e depois de cada execução, mostra se o próprio Pi ficou mais lento.</dd></div>
+    </dl>
+  </section>
+
+  <section id="foco" class="lp-sec">
+    <p class="lp-foco-rot">Todas as execuções rodaram nas mesmas condições: sem interface gráfica, CPU fixa na frequência máxima (1,8 GHz, governor performance), servidor com 1 processo e 1 thread, um pacote por requisição e uma requisição de cada vez</p>
+    <div class="lp-tiles">
+      <div class="lp-card">
+        <span class="lp-card-rot">Modelos que passam pela regra (p95 do /predict ≤ 10 ms)</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="n_passa" data-dec="0">—</span><span class="lp-card-un">de</span> <span data-draw="num" data-source="resumo" data-field="n_total" data-dec="0">—</span></span>
+        <span class="lp-card-sub">GaussianNB e QDA passam a só <span class="lp-num" data-draw="num" data-source="resumo" data-field="dist_GaussianNB" data-dec="1">—</span>% e <span class="lp-num" data-draw="num" data-source="resumo" data-field="dist_QDA" data-dec="1">—</span>% do limite</span>
+      </div>
+      <div class="lp-card">
+        <span class="lp-card-rot">Falha mais apertada: p95 do SVM</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="p95_SVM">—</span><span class="lp-card-un">ms</span></span>
+        <span class="lp-card-sub">Intervalo de <span class="lp-num" data-draw="num" data-source="resumo" data-field="ic_inf_SVM">—</span> a <span class="lp-num" data-draw="num" data-source="resumo" data-field="ic_sup_SVM">—</span> ms: todo acima de 10 ms, mas só <span class="lp-num" data-draw="num" data-source="resumo" data-field="dist_SVM_abs" data-dec="1">—</span>% acima</span>
+      </div>
+      <div class="lp-card">
+        <span class="lp-card-rot">Piso do HTTP (p50 do /ping)</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="piso_med">—</span><span class="lp-card-un">ms</span></span>
+        <span class="lp-card-sub">De <span class="lp-num" data-draw="num" data-source="resumo" data-field="piso_min">—</span> a <span class="lp-num" data-draw="num" data-source="resumo" data-field="piso_max">—</span> ms nos 7 servidores: cerca de <span class="lp-num" data-draw="num" data-source="resumo" data-field="piso_pct" data-dec="1">—</span>% dos 10 ms</span>
+      </div>
+      <div class="lp-card">
+        <span class="lp-card-rot">Temperatura máxima do chip</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</span><span class="lp-card-un">°C</span></span>
+        <span class="lp-card-sub">O Pi 4 só reduz a frequência a partir de 80 °C. Canários, depois ÷ antes: <span class="lp-num" data-draw="num" data-source="resumo" data-field="can_min" data-dec="3">—</span> a <span class="lp-num" data-draw="num" data-source="resumo" data-field="can_max" data-dec="3">—</span></span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="lp-ressalvas" id="ressalvas">
+    <h2>Ressalvas</h2>
+    <ul>
+      <li>São medições exploratórias de um único Raspberry Pi sem ventoinha. Nenhum número aqui é resultado final, e outro aparelho pode dar valores diferentes.</li>
+      <li>Cliente e servidor estão no mesmo Pi (loopback). Não é o tempo que um cliente remoto veria: não há rede, Wi-Fi nem outros clientes, e as requisições nunca esperam em fila. Os dados de cada requisição são montados antes de cronometrar.</li>
+      <li>O chip esquentou ao longo da bateria: a mediana da temperatura no início das execuções foi de <span class="lp-num" data-draw="num" data-source="resumo" data-field="temp_r1" data-dec="1">—</span> °C na rodada 1 a <span class="lp-num" data-draw="num" data-source="resumo" data-field="temp_r5" data-dec="1">—</span> °C na 5. O p95 do <code>/predict</code> ficou de <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_min" data-dec="1">—</span>% a <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_max" data-dec="1">—</span>% mais alto nas rodadas seguintes que na rodada 1. Por isso, <b>diferenças menores que ~3% não devem ser interpretadas</b>.</li>
+      <li>"Firme" e "no limite" são interpretação, não regra. DecisionTree, LDA e GradientBoosting passam e a RandomForest falha com o p95 a pelo menos 22% de distância do limite. GaussianNB e QDA passam por ~4,5% e o SVM falha por ~2,3%, distâncias parecidas com a variação causada pelo aquecimento: <b>esses três estão no limite</b>, e o veredito deles pode mudar em outra medição.</li>
+      <li>O p99 de GaussianNB, QDA e SVM (e da RandomForest) passa de 10 ms. O limite do projeto vale para o p95.</li>
+      <li>Só 7 dos 11 modelos da etapa anterior (todos com o seletor LowVariance), só com um pacote por requisição e sem medir memória. O "modelo em processo" da decomposição vem da etapa anterior, medida em outro dia e sem núcleos fixos; o "resto" de 0,8 a 1,1 ms não foi investigado.</li>
+      <li>As 5 repetições vêm do mesmo Pi, ligado uma única vez, no mesmo ambiente (pseudorreplicação). Os intervalos não cobrem outros aparelhos, reinícios ou temperaturas da sala.</li>
+      <li>A página não mede se os modelos acertam (MCC, F1). Por isso não há ranking: um modelo rápido pode classificar mal.</li>
+    </ul>
+  </aside>
+
+  <section id="veredito" class="lp-sec">
+    <h2>Quais modelos cumprem p95 ≤ 10 ms via HTTP, e com que folga?</h2>
+    <p class="lp-pergunta">Tempo de resposta do <code>/predict</code>, juntando as 5 rodadas (10.000 requisições por modelo). A escala vai de 6,5 a 12,5 ms para mostrar de perto os modelos perto do limite; a RandomForest fica fora dela. Ao lado de cada nome, o veredito pela regra; "no limite" marca os que ficam a menos de 10% dos 10 ms.</p>
+    <ul class="lp-legenda" aria-label="Marcas do gráfico">
+      <li><span class="lp-mk">│</span>p50 (mediana)</li>
+      <li><span class="lp-mk">●</span>p95, com o intervalo na barra grossa</li>
+      <li><span class="lp-mk">○</span>p99, com o intervalo na barra fina</li>
+    </ul>
+    <div class="lp-chart" style="min-height:0" data-draw="veredito" data-source="sla"></div>
+    <div class="lp-tabela-rolagem" data-draw="tab-veredito" data-source="sla"></div>
+    <p class="lp-nota">Distância = quanto o p95 fica abaixo (+) ou acima (−) de 10 ms, em % do limite. O corte de 10% para "no limite" é uma escolha de leitura: com estes dados, qualquer corte entre 5% e 22% separa os mesmos modelos.</p>
+  </section>
+
+  <section id="orcamento" class="lp-sec">
+    <h2>Quanto dos 10 ms o HTTP consome, e quanto é o modelo?</h2>
+    <p class="lp-pergunta">A mediana do <code>/predict</code> dividida em partes. O piso do HTTP é o <code>/ping</code>. O modelo em processo é o p50 medido na etapa anterior, só com o <code>predict</code>. O resto é o que sobra, e a parte clara no fim é quanto o <code>/predict-json</code> leva a mais. As barras são medianas; a linha de 10 ms vale para o p95, que é sempre um pouco maior.</p>
+    <ul class="lp-legenda" aria-label="Partes da barra">
+      <li><span class="lp-sw" style="background:var(--cds-chart-muted)"></span>Piso do HTTP (/ping)</li>
+      <li><span class="lp-sw" data-g="0"></span>Modelo em processo (etapa de 12/11)</li>
+      <li><span class="lp-sw" data-g="2"></span>Resto, não investigado</li>
+      <li><span class="lp-sw lp-sw-claro" data-g="1"></span>A mais no /predict-json</li>
+    </ul>
+    <div class="lp-chart" style="min-height:0" data-draw="orcamento" data-source="sla"></div>
+    <div class="lp-tabela-rolagem" data-draw="tab-orcamento" data-source="sla"></div>
+    <p class="lp-nota">Via HTTP, sem o piso, o <code>/predict</code> leva de <b class="lp-num" data-draw="num" data-source="resumo" data-field="razao_min" data-dec="3">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="razao_max" data-dec="3">—</b> vezes o tempo em processo, uma diferença quase constante de <b class="lp-num" data-draw="num" data-source="resumo" data-field="resto_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="resto_max">—</b> ms. O modelo em processo vem de outro dia e de outra configuração de núcleos, então o resto mistura custo real com diferenças entre as duas baterias.</p>
+  </section>
+
+  <section id="json" class="lp-sec">
+    <h2>Quanto o JSON custa a mais que o formato binário?</h2>
+    <p class="lp-pergunta">Mandar os dados em JSON acrescenta de <b class="lp-num" data-draw="num" data-source="resumo" data-field="json_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="json_max">—</b> ms na mediana. O veredito do projeto é sobre o <code>/predict</code>; a tabela aplica a mesma regra ao <code>/predict-json</code> só como referência.</p>
+    <div class="lp-tabela-rolagem" data-draw="tab-json" data-source="sla"></div>
+  </section>
+
+  <section id="rodadas" class="lp-sec">
+    <h2>O desempenho mudou ao longo das rodadas, com o chip mais quente?</h2>
+    <p class="lp-pergunta">Quanto o p95 do <code>/predict</code> de cada rodada ficou acima (ou abaixo) do p95 da rodada 1, a mais fria. A faixa cinza (±3%) é a variação que não dá para interpretar.</p>
+    <ul class="lp-legenda" aria-label="Rodadas">
+      <li><span class="lp-sw" data-g="0"></span>Rodada 2</li>
+      <li><span class="lp-sw" data-g="1"></span>Rodada 3</li>
+      <li><span class="lp-sw" data-g="2"></span>Rodada 4</li>
+      <li><span class="lp-sw" data-g="3"></span>Rodada 5</li>
+    </ul>
+    <div class="lp-chart" style="min-height:0" data-draw="deriva" data-source="deriva"></div>
+    <div class="lp-tabela-rolagem" data-draw="tab-deriva" data-source="deriva"></div>
+
+    <h3>Temperatura do chip em cada rodada</h3>
+    <p class="lp-pergunta">Cada ponto é uma execução: ○ temperatura antes de subir o servidor, ● depois de derrubá-lo. O traço é a mediana do início da rodada. A partir de 80 °C o Pi reduziria a frequência.</p>
+    <div class="lp-chart" style="min-height:0" data-draw="temperatura" data-source="rodadas"></div>
+    <div class="lp-tabela-rolagem" data-draw="tab-temperatura" data-source="deriva"></div>
+    <p class="lp-nota">Temperaturas lidas pelo <code>vcgencmd</code>. As leituras do cliente, logo antes e logo depois das medições, ficam cerca de 1 a 2 °C acima e chegam a <b class="lp-num" data-draw="num" data-source="resumo" data-field="janela_max" data-dec="1">—</b> °C. Todas as <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_leituras" data-dec="0">—</span> leituras de throttled deram 0x0.</p>
+
+    <h3>Os canários mudaram?</h3>
+    <p class="lp-pergunta">Mediana (p50) de 100 chamadas de cada canário antes e depois de cada execução. Razão = depois ÷ antes; 1,00 quer dizer que o Pi manteve o ritmo. Em todas as execuções, o canário de CPU ficou entre <b class="lp-num" data-draw="num" data-source="resumo" data-field="cpu_min">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="cpu_max">—</b> ms e o de memória entre <b class="lp-num" data-draw="num" data-source="resumo" data-field="mem_min">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="mem_max">—</b> ms.</p>
+    <div class="lp-tabela-rolagem" data-draw="tab-canarios" data-source="canarios"></div>
+    <details class="lp-detalhe">
+      <summary>Todas as leituras dos canários, por execução</summary>
+      <div class="lp-tabela-rolagem" data-draw="tab-canarios-todos" data-source="canarios"></div>
+    </details>
+  </section>
+
+  <details class="lp-glossario" id="glossario">
+    <summary>Termos técnicos</summary>
+    <dl>
+      <dt>Serviço de inferência</dt><dd>Servidor FastAPI/uvicorn com 1 worker e 1 thread, no núcleo 2 do Pi. O cliente de carga roda no núcleo 3.</dd>
+      <dt>Execução</dt><dd>Um modelo numa rodada: servidor novo, 200 requisições de aquecimento descartadas e 2.000 cronometradas em cada endpoint, uma de cada vez, mais 100 chamadas de cada canário antes e depois. São 35 execuções (7 modelos × 5 rodadas).</dd>
+      <dt>Latência em processo</dt><dd>O tempo só do <code>predict</code> dentro do programa, medido na etapa de 12/11.</dd>
+      <dt>IC exploratório</dt><dd>Intervalo de 95% por bootstrap em dois níveis: sorteia repetições e, dentro delas, blocos de requisições seguidas. No p95, é a união com o IC-t das repetições (o mais largo dos dois); no p99, só o bootstrap.</dd>
+      <dt>Piso do HTTP</dt><dd>O p50 do <code>/ping</code>: servidor, leitura do corpo e cliente, sem modelo.</dd>
+      <dt>Resto</dt><dd>(<code>/predict</code> − <code>/ping</code>) menos o modelo em processo da etapa anterior. Não foi investigado.</dd>
+      <dt>Canário</dt><dd>Chamada de custo conhecido, de CPU ou de memória, que independe do modelo.</dd>
+      <dt>throttled</dt><dd>Registro do Pi de redução de frequência por falta de tensão ou por calor; 0x0 = nenhuma. O limite térmico do Pi 4 começa em 80 °C.</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+(function () {
+  const L = d3.formatLocale({ decimal: ',', thousands: '.', grouping: [3], currency: ['R$ ', ''] });
+  const LP = window.LP = {};
+  // Arredondamento convencional (meio para cima): toFixed sozinho mostraria 26,735 como 26,73.
+  LP.f = (v, d) => {
+    if (v == null || isNaN(+v)) return '—';
+    const k = 10 ** (d == null ? 2 : d), x = +v;
+    return L.format(',.' + (d == null ? 2 : d) + 'f')(Math.sign(x) * Math.round(Math.abs(x) * k + 1e-9) / k);
+  };
+  LP.ms = (v) => LP.f(v, 2);
+  LP.pct = (v) => (Math.round(v * 10) > 0 ? '+' : '') + LP.f(v, 1) + '%';
+  LP.LIMITE = 10; // ms, p95 do /predict
+  // Interpretação, não regra: "no limite" = p95 a menos de 10% dos 10 ms. Com estes dados, qualquer corte entre 5% e 22% separa os mesmos modelos.
+  LP.PERTO_PCT = 10;
+  // Regra do SLA, fixada antes dos dados: passa se o IC superior ≤ 10 ms; falha se o inferior > 10 ms; senão, inconclusivo.
+  LP.regra = (ic) => ic[1] <= LP.LIMITE ? 'passa' : ic[0] > LP.LIMITE ? 'falha' : 'inconclusivo';
+  LP.vereditoTxt = (m) => m.regra + (m.perto ? ', no limite' : '') + (m.regra !== m.veredito_csv ? ' (CSV diz ' + m.veredito_csv + ')' : '');
+  LP.vereditoCor = (m) => m.perto || m.regra === 'inconclusivo' ? 'var(--color-warn-fg)' : m.regra === 'passa' ? 'var(--color-ok)' : 'var(--cds-chart-status-critical)';
+  LP.cor = (g) => (g < 4 && dash.colors && dash.colors[g]) ? dash.colors[g] : 'var(--cds-chart-muted)';
+  LP.ok = (el, fontes) => {
+    if (fontes.some((d) => d.status !== 'ok' || !d.data)) {
+      const p = document.createElement('div'); p.className = 'lp-falha'; p.textContent = 'Falha ao carregar os dados deste gráfico.';
+      el.replaceChildren(p); return false;
+    }
+    return true;
+  };
+  LP.eixoTexto = (s) => s.selectAll('text').style('fill', 'var(--cds-text-secondary)').style('font-size', 'var(--cds-font-size-caption)').style('font-family', 'var(--font-mono)');
+  LP.tip = (host) => {
+    const t = document.createElement('div'); t.className = 'lp-tip'; t.hidden = true; host.appendChild(t);
+    return {
+      show(ev, linhas) {
+        t.replaceChildren(...linhas.map((l, i) => { const d = document.createElement('div'); if (i > 0) d.className = 'lp-tip-sec'; d.textContent = l; return d; }));
+        t.hidden = false;
+        const r = host.getBoundingClientRect();
+        let x = ev.clientX - r.left + 12, y = ev.clientY - r.top + 12;
+        const w = t.offsetWidth, h = t.offsetHeight;
+        if (x + w > r.width) x = Math.max(0, ev.clientX - r.left - w - 12);
+        if (y + h > r.height) y = Math.max(0, ev.clientY - r.top - h - 12);
+        t.style.left = x + 'px'; t.style.top = y + 'px';
+      },
+      hide() { t.hidden = true; }
+    };
+  };
+  LP.textW = (svg, textos) => {
+    const g = svg.append('g').attr('opacity', 0);
+    let m = 0;
+    textos.forEach((s) => { const t = g.append('text').text(s); m = Math.max(m, t.node().getComputedTextLength()); });
+    g.remove();
+    return m;
+  };
+  /*
+    Gráfico de linhas: uma linha por item (rows), um ou mais painéis lado a lado com eixo x próprio,
+    e uma coluna de valor opcional à direita. Em tela estreita, o rótulo vai acima da linha.
+    o = { aria, rows: [{rot, fam, ...}], panels: [{titulo, tituloCurto, dom, nice, dec, fmt, refs: [{v, rot, rotCurto, cor}], faixa: {de, ate, rot}, marca(svg, row, xs, y, tip)}],
+          valor(row) -> {txt, cor}, valorTit, valW }
+  */
+  LP.linhas = (el, o) => {
+    el.replaceChildren();
+    const W = Math.max(280, el.clientWidth), estreito = W < 600;
+    const svg = d3.select(el).append('svg').attr('width', W).attr('role', 'img').attr('aria-label', o.aria);
+    const rowH = estreito ? 38 : 26, topo = 34, ys = [];
+    let y = topo;
+    o.rows.forEach((r, i) => { if (i && r.fam !== o.rows[i - 1].fam) y += 10; ys.push(y + rowH / 2 + (estreito ? 8 : 0)); y += rowH; });
+    const base = y + 4, H = base + 24;
+    svg.attr('height', H).attr('viewBox', '0 0 ' + W + ' ' + H);
+    const valW = o.valor ? (o.valW || (estreito ? 52 : 76)) : 0;
+    const labW = estreito ? 0 : Math.ceil(LP.textW(svg, o.rows.map((r) => r.rot))) + 14;
+    const gap = 22, np = o.panels.length, pw = (W - labW - valW - gap * (np - 1)) / np;
+    const tip = LP.tip(el);
+    o.panels.forEach((p, k) => {
+      const x0 = labW + k * (pw + gap), x1 = x0 + pw;
+      const xs = d3.scaleLinear().domain(p.dom).range([x0 + 6, x1 - 6]);
+      if (p.nice !== false) xs.nice();
+      if (p.faixa) {
+        svg.append('rect').attr('x', xs(p.faixa.de)).attr('width', xs(p.faixa.ate) - xs(p.faixa.de)).attr('y', topo).attr('height', base - topo)
+          .style('fill', 'var(--cds-chart-grid)').style('opacity', 0.9);
+        svg.append('text').attr('x', xs(p.faixa.de) + 4).attr('y', topo - 6).text(p.faixa.rot);
+      }
+      const ax = svg.append('g').attr('transform', 'translate(0,' + base + ')')
+        .call(d3.axisBottom(xs).ticks(Math.max(2, Math.floor(pw / 64))).tickFormat(p.fmt || ((v) => LP.f(v, p.dec == null ? 1 : p.dec))).tickSize(-(base - topo)).tickSizeOuter(0));
+      ax.select('.domain').remove(); ax.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)'); LP.eixoTexto(ax);
+      svg.append('text').attr('class', 'lp-forte').attr('x', x0 + 6).attr('y', 12).text(estreito && p.tituloCurto || p.titulo);
+      (p.refs || []).forEach((rf) => {
+        const xr = xs(rf.v), cor = rf.cor || 'var(--cds-chart-reference)';
+        svg.append('line').attr('x1', xr).attr('x2', xr).attr('y1', topo - 4).attr('y2', base).style('stroke', cor).style('stroke-width', 1.5).style('stroke-dasharray', '5 3');
+        const t = svg.append('text').attr('y', topo - 8).style('fill', cor).text(estreito && rf.rotCurto || rf.rot);
+        const tw = t.node().getComputedTextLength();
+        if (xr + 4 + tw <= x1) t.attr('x', xr + 4); else t.attr('x', xr - 4).attr('text-anchor', 'end');
+      });
+      o.rows.forEach((r, i) => p.marca(svg, r, xs, ys[i], tip, estreito));
+    });
+    // Rótulos por último, com contorno do fundo: em tela estreita ficam sobre a grade.
+    o.rows.forEach((r, i) => {
+      const t = svg.append('text').text(r.rot).style('pointer-events', 'none')
+        .style('paint-order', 'stroke').style('stroke', 'var(--color-panel)').style('stroke-width', 3);
+      if (r.cor) t.style('fill', r.cor);
+      if (estreito) t.attr('x', 0).attr('y', ys[i] - 13); else t.attr('x', labW - 10).attr('y', ys[i] + 4).attr('text-anchor', 'end');
+    });
+    if (o.valor) {
+      svg.append('text').attr('x', W).attr('y', 12).attr('text-anchor', 'end').text(o.valorTit);
+      o.rows.forEach((r, i) => {
+        const v = o.valor(r);
+        svg.append('text').attr('class', 'lp-val').attr('x', W).attr('y', ys[i] + 4).attr('text-anchor', 'end').style('fill', v.cor || null).text(v.txt);
+      });
+    }
+  };
+  // Alvo invisível de uma linha inteira do painel, para o tooltip (os valores também estão na tabela abaixo de cada gráfico).
+  LP.alvo = (svg, xs, y, tip, linhas) => {
+    const r = xs.range();
+    svg.append('rect').attr('x', r[0] - 6).attr('width', r[1] - r[0] + 12).attr('y', y - 10).attr('height', 20).style('fill', 'transparent')
+      .on('mousemove', (ev) => tip.show(ev, linhas)).on('mouseleave', () => tip.hide());
+  };
+  LP.ponto = (svg, x, y, cor, cheio, r) => svg.append('circle').attr('cx', x).attr('cy', y).attr('r', r || 4.5)
+    .style('fill', cheio ? cor : 'var(--color-panel)').style('stroke', cor).style('stroke-width', 1.5).style('pointer-events', 'none');
+  LP.seg = (svg, xa, xb, y, cor, w, op) => svg.append('line').attr('x1', xa).attr('x2', xb).attr('y1', y).attr('y2', y)
+    .style('stroke', cor).style('stroke-width', w).style('stroke-linecap', 'round').style('opacity', op == null ? 1 : op).style('pointer-events', 'none');
+  // Tabela de valores exatos: cols = [{tit, f(row) -> texto, cor(row)?, forte(row)?}].
+  LP.tabela = (el, cols, rows) => {
+    el.replaceChildren();
+    const t = d3.select(el).append('table').attr('class', 'lp-tabela');
+    t.append('thead').append('tr').selectAll('th').data(cols).join('th').attr('scope', 'col').text((c) => c.tit);
+    const tr = t.append('tbody').selectAll('tr').data(rows).join('tr').classed('lp-sep', (r) => !!r.sep);
+    cols.forEach((c) => tr.append('td').text((r) => c.f(r)).style('color', (r) => c.cor ? c.cor(r) : null).classed('lp-destaque', (r) => !!(c.forte && c.forte(r))));
+  };
+})();
+</script>
+
+<script>
+dash.calc('sla', {
+  title: 'Latências e veredito por modelo',
+  description: 'Percentis e ICs de /ping, /predict e /predict-json, decomposição do p50 e veredito pela regra, em ordem do p95 do /predict.',
+  inputs: ['agregado', 'decomp'],
+  fn: (ag, dc) => {
+    const g = (m, e) => {
+      const a = ag.find((x) => x.modelo === m && x.endpoint === e);
+      return { p50: +a.p50_ms, p95: +a.p95_ms, ic95: [+a.p95_ic_inf_ms, +a.p95_ic_sup_ms], p99: +a.p99_ms, ic99: [+a.p99_ic_inf_ms, +a.p99_ic_sup_ms], reps: +a.repeticoes, n: +a.n_por_repeticao };
+    };
+    return dc.map((d) => {
+      const m = {
+        modelo: d.modelo, ping: g(d.modelo, 'ping'), predict: g(d.modelo, 'predict'), json: g(d.modelo, 'predict_json'),
+        ping_p50: +d.ping_p50_ms, predict_p50: +d.predict_p50_ms, sem_ping: +d.predict_menos_ping_ms,
+        em_processo: +d.em_processo_p50_ms, razao: +d.razao_predict_menos_ping_sobre_em_processo,
+        json_extra: +d.json_menos_predict_ms, veredito_csv: d.veredito_sla
+      };
+      m.resto = m.sem_ping - m.em_processo;
+      m.regra = LP.regra(m.predict.ic95);
+      m.dist = (LP.LIMITE - m.predict.p95) / LP.LIMITE * 100;
+      m.perto = Math.abs(m.dist) < LP.PERTO_PCT;
+      m.regra_json = LP.regra(m.json.ic95);
+      return m;
+    }).sort((a, b) => a.predict.p95 - b.predict.p95);
+  }
+});
+
+dash.calc('deriva', {
+  title: 'p95 do /predict e temperatura por rodada',
+  description: 'p95 de cada rodada, variação em relação à rodada 1 e temperaturas de início e fim, na ordem da rodada 1.',
+  inputs: ['reps', 'execucoes'],
+  fn: (reps, ex) => {
+    const ordem = ex.filter((e) => e.rep === '1').sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio)).map((e) => e.modelo);
+    return ordem.map((m) => {
+      const r = reps.find((x) => x.modelo === m && x.endpoint === 'predict');
+      const v = [1, 2, 3, 4, 5].map((k) => +r['rep' + k]);
+      return {
+        modelo: m, rot: m, fam: '', v, d: v.map((x) => (x / v[0] - 1) * 100),
+        ex: [1, 2, 3, 4, 5].map((k) => ex.find((e) => e.modelo === m && e.rep === String(k)))
+      };
+    });
+  }
+});
+
+dash.calc('rodadas', {
+  title: 'Temperaturas por rodada',
+  description: 'Execuções de cada rodada em ordem de hora, sentido da ordem e mediana da temperatura no início.',
+  inputs: ['execucoes'],
+  fn: (ex) => {
+    const r1 = ex.filter((e) => e.rep === '1').sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio))[0].modelo;
+    return [1, 2, 3, 4, 5].map((k) => {
+      const es = ex.filter((e) => e.rep === String(k)).sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio));
+      const sentido = es[0].modelo === r1 ? 'ordem direta' : 'ordem inversa';
+      return { k, rot: 'Rodada ' + k + ' · ' + sentido + ' · ' + es[0].hora_inicio.slice(0, 5) + ' a ' + es[es.length - 1].hora_fim.slice(0, 5), fam: '', es, med: d3.median(es, (e) => +e.temp_inicio_C) };
+    });
+  }
+});
+
+dash.calc('canarios', {
+  title: 'Canários por execução',
+  description: 'p50 dos canários antes e depois de cada execução; a rodada é a ordem da linha dentro de cada modelo e canário.',
+  inputs: ['canarios_csv'],
+  fn: (cs) => {
+    const cont = {};
+    return cs.map((c) => {
+      const k = c.modelo + '|' + c.canario; cont[k] = (cont[k] || 0) + 1;
+      return { modelo: c.modelo, canario: c.canario, rodada: cont[k], antes: +c.p50_antes_ms, depois: +c.p50_depois_ms, razao: +c.p50_depois_ms / +c.p50_antes_ms };
+    });
+  }
+});
+
+dash.calc('resumo', {
+  title: 'Números do topo e das frases',
+  description: 'Contagens, faixas e valores por modelo usados no resumo, nos cartões e no texto das seções.',
+  inputs: ['sla', 'deriva', 'rodadas', 'canarios', 'execucoes'],
+  fn: (sla, der, rod, can, ex) => {
+    const o = { n_total: sla.length, n_passa: sla.filter((m) => m.regra === 'passa').length };
+    sla.forEach((m) => {
+      o['p95_' + m.modelo] = m.predict.p95; o['dist_' + m.modelo] = m.dist;
+      o['ic_inf_' + m.modelo] = m.predict.ic95[0]; o['ic_sup_' + m.modelo] = m.predict.ic95[1];
+    });
+    o.dist_SVM_abs = Math.abs(o.dist_SVM);
+    o.piso_med = d3.median(sla, (m) => m.ping_p50); o.piso_min = d3.min(sla, (m) => m.ping_p50); o.piso_max = d3.max(sla, (m) => m.ping_p50);
+    o.piso_pct = o.piso_med / LP.LIMITE * 100;
+    o.razao_min = d3.min(sla, (m) => m.razao); o.razao_max = d3.max(sla, (m) => m.razao);
+    o.resto_min = d3.min(sla, (m) => m.resto); o.resto_max = d3.max(sla, (m) => m.resto);
+    o.json_min = d3.min(sla, (m) => m.json_extra); o.json_max = d3.max(sla, (m) => m.json_extra);
+    const ds = der.flatMap((r) => r.d.slice(1));
+    o.der_min = d3.min(ds); o.der_max = d3.max(ds);
+    o.temp_r1 = rod[0].med; o.temp_r5 = rod[4].med;
+    o.temp_max = d3.max(ex, (e) => Math.max(+e.temp_inicio_C, +e.temp_fim_C));
+    o.janela_max = d3.max(ex, (e) => Math.max(+e.temp_janela_antes_C, +e.temp_janela_depois_C));
+    o.n_leituras = ex.length * 2;
+    o.n_ok = ex.filter((e) => e.throttled_inicio === '0x0').length + ex.filter((e) => e.throttled_fim === '0x0').length;
+    const val = (k) => can.filter((c) => c.canario === k).flatMap((c) => [c.antes, c.depois]);
+    o.can_min = d3.min(can, (c) => c.razao); o.can_max = d3.max(can, (c) => c.razao);
+    o.cpu_min = d3.min(val('cpu')); o.cpu_max = d3.max(val('cpu')); o.mem_min = d3.min(val('mem')); o.mem_max = d3.max(val('mem'));
+    return [o];
+  }
+});
+</script>
+
+<script>
+dash.onData(() => {
+  document.querySelectorAll('.lp-sw[data-g]').forEach((s) => { s.style.background = LP.cor(+s.dataset.g); });
+});
+
+dash.draw('num', (el) => {
+  const d = dash.data(el.dataset.source);
+  if (d.status !== 'ok' || !d.data || !d.data[0]) { el.textContent = '—'; return; }
+  const v = d.data[0][el.dataset.field];
+  const dec = el.dataset.dec == null ? 2 : +el.dataset.dec;
+  el.textContent = dec < 0 ? v : LP.f(v, dec);
+});
+
+/* 1. Veredito: p50, p95 e p99 do /predict, com os ICs */
+dash.draw('veredito', (el) => {
+  const S = dash.data('sla');
+  if (!LP.ok(el, [S])) return;
+  const dom = [6.5, 12.5];
+  LP.linhas(el, {
+    aria: 'p50, p95 e p99 do /predict por modelo, com os intervalos do p95 e do p99 e o limite de 10 ms. Os valores estão na tabela abaixo.',
+    rows: S.data.map((m) => Object.assign({ rot: m.modelo + ' · ' + LP.vereditoTxt(m), cor: LP.vereditoCor(m), fam: '' }, m)),
+    panels: [{
+      titulo: 'Tempo de resposta do /predict (ms)', tituloCurto: '/predict (ms)', dom, nice: false, dec: 1,
+      refs: [{ v: LP.LIMITE, rot: '10 ms: limite do p95', rotCurto: '10 ms', cor: 'var(--cds-chart-status-critical)' }],
+      marca: (svg, m, xs, y, tip) => {
+        const b = m.predict, cor = LP.cor(0);
+        if (b.p50 > dom[1]) {
+          svg.append('text').attr('class', 'lp-val').attr('x', xs(dom[1])).attr('y', y + 4).attr('text-anchor', 'end')
+            .text('fora da escala: p50 ' + LP.ms(b.p50) + ' · p95 ' + LP.ms(b.p95) + ' · p99 ' + LP.ms(b.p99) + ' →');
+          return;
+        }
+        const x = (v) => xs(Math.min(v, dom[1]));
+        LP.seg(svg, x(b.ic99[0]), x(b.ic99[1]), y, cor, 1.5, 0.5);
+        LP.seg(svg, x(b.ic95[0]), x(b.ic95[1]), y, cor, 5, 0.85);
+        svg.append('line').attr('x1', x(b.p50)).attr('x2', x(b.p50)).attr('y1', y - 7).attr('y2', y + 7).style('stroke', 'var(--color-fg)').style('stroke-width', 2);
+        LP.ponto(svg, x(b.p95), y, cor, true);
+        LP.ponto(svg, x(b.p99), y, cor, false, 4);
+        LP.alvo(svg, xs, y, tip, [m.modelo, 'p50 ' + LP.ms(b.p50) + ' · p95 ' + LP.ms(b.p95) + ' · p99 ' + LP.ms(b.p99) + ' ms']);
+      }
+    }],
+    valorTit: 'p95 (ms)',
+    valor: (m) => ({ txt: LP.ms(m.predict.p95), cor: LP.vereditoCor(m) })
+  });
+});
+
+dash.draw('tab-veredito', (el) => {
+  const S = dash.data('sla');
+  if (!LP.ok(el, [S])) return;
+  LP.tabela(el, [
+    { tit: 'Modelo', f: (m) => m.modelo },
+    { tit: 'Veredito pela regra', f: (m) => LP.vereditoTxt(m), cor: (m) => LP.vereditoCor(m) },
+    { tit: 'p50 (ms)', f: (m) => LP.ms(m.predict.p50) },
+    { tit: 'p95 (ms)', f: (m) => LP.ms(m.predict.p95), forte: () => true },
+    { tit: 'IC do p95, inferior (ms)', f: (m) => LP.ms(m.predict.ic95[0]) },
+    { tit: 'IC do p95, superior (ms)', f: (m) => LP.ms(m.predict.ic95[1]) },
+    { tit: 'Distância do p95 a 10 ms', f: (m) => LP.pct(m.dist) },
+    { tit: 'p99 (ms)', f: (m) => LP.ms(m.predict.p99), forte: (m) => m.predict.p99 > LP.LIMITE },
+    { tit: 'IC do p99, inferior (ms)', f: (m) => LP.ms(m.predict.ic99[0]) },
+    { tit: 'IC do p99, superior (ms)', f: (m) => LP.ms(m.predict.ic99[1]) }
+  ], S.data);
+});
+
+/* 2. Orçamento: o p50 do /predict em partes */
+dash.draw('orcamento', (el) => {
+  const S = dash.data('sla');
+  if (!LP.ok(el, [S])) return;
+  const partes = (m) => [
+    { v: m.ping_p50, cor: 'var(--cds-chart-muted)', op: 1 },
+    { v: m.em_processo, cor: LP.cor(0), op: 1 },
+    { v: m.resto, cor: LP.cor(2), op: 1 },
+    { v: m.json_extra, cor: LP.cor(1), op: 0.45 }
+  ];
+  LP.linhas(el, {
+    aria: 'Mediana do /predict de cada modelo dividida em piso do HTTP, modelo em processo e resto, mais o acréscimo do /predict-json. Os valores estão na tabela abaixo.',
+    rows: S.data.map((m) => Object.assign({ rot: m.modelo, fam: '' }, m)),
+    panels: [{
+      titulo: 'Mediana do tempo de resposta (ms)', tituloCurto: 'p50 (ms)', dom: [0, d3.max(S.data, (m) => m.json.p50) * 1.02], dec: 0,
+      refs: [{ v: LP.LIMITE, rot: '10 ms: limite (vale para o p95)', rotCurto: '10 ms', cor: 'var(--cds-chart-status-critical)' }],
+      marca: (svg, m, xs, y, tip) => {
+        let acc = 0;
+        partes(m).forEach((p, i) => {
+          const xa = xs(acc), xb = xs(acc + p.v); acc += p.v;
+          svg.append('rect').attr('x', xa).attr('width', Math.max(0.5, xb - xa)).attr('y', y - 8).attr('height', 16)
+            .style('fill', p.cor).style('opacity', p.op).style('pointer-events', 'none');
+          if (i === 3) return;
+          const t = svg.append('text').attr('x', (xa + xb) / 2).attr('y', y + 4).attr('text-anchor', 'middle')
+            .style('fill', 'var(--color-panel)').style('font-family', 'var(--font-mono)').style('font-size', 'var(--cds-font-size-micro)').text(LP.ms(p.v));
+          if (t.node().getComputedTextLength() + 6 > xb - xa) t.remove();
+        });
+        LP.alvo(svg, xs, y, tip, [m.modelo, 'piso ' + LP.ms(m.ping_p50) + ' + modelo ' + LP.ms(m.em_processo) + ' + resto ' + LP.ms(m.resto) + ' = ' + LP.ms(m.predict_p50) + ' ms', 'JSON: +' + LP.ms(m.json_extra) + ' ms']);
+      }
+    }],
+    valorTit: '/predict, p50 (ms)',
+    valW: 120,
+    valor: (m) => ({ txt: LP.ms(m.predict_p50) })
+  });
+});
+
+dash.draw('tab-orcamento', (el) => {
+  const S = dash.data('sla');
+  if (!LP.ok(el, [S])) return;
+  LP.tabela(el, [
+    { tit: 'Modelo', f: (m) => m.modelo },
+    { tit: 'Piso do HTTP: /ping, p50 (ms)', f: (m) => LP.ms(m.ping_p50) },
+    { tit: 'Piso, % de 10 ms', f: (m) => LP.f(m.ping_p50 / LP.LIMITE * 100, 1) + '%' },
+    { tit: 'Modelo em processo, p50 (ms, etapa de 12/11)', f: (m) => LP.ms(m.em_processo) },
+    { tit: 'Resto (ms)', f: (m) => LP.ms(m.resto) },
+    { tit: '/predict, p50 (ms)', f: (m) => LP.ms(m.predict_p50), forte: () => true },
+    { tit: '/predict − /ping (ms)', f: (m) => LP.ms(m.sem_ping) },
+    { tit: '(/predict − /ping) ÷ em processo', f: (m) => LP.f(m.razao, 3) },
+    { tit: 'A mais no /predict-json (ms)', f: (m) => LP.ms(m.json_extra) }
+  ], S.data);
+});
+
+/* 3. JSON: a mesma regra aplicada ao /predict-json, como referência */
+dash.draw('tab-json', (el) => {
+  const S = dash.data('sla');
+  if (!LP.ok(el, [S])) return;
+  const cor = (r) => r === 'passa' ? 'var(--color-ok)' : r === 'falha' ? 'var(--cds-chart-status-critical)' : 'var(--color-warn-fg)';
+  LP.tabela(el, [
+    { tit: 'Modelo', f: (m) => m.modelo },
+    { tit: '/predict, p50 (ms)', f: (m) => LP.ms(m.predict_p50) },
+    { tit: '/predict-json, p50 (ms)', f: (m) => LP.ms(m.json.p50) },
+    { tit: 'Diferença (ms)', f: (m) => '+' + LP.ms(m.json_extra), forte: () => true },
+    { tit: '/predict-json, p95 (ms)', f: (m) => LP.ms(m.json.p95) },
+    { tit: 'IC do p95, inferior (ms)', f: (m) => LP.ms(m.json.ic95[0]) },
+    { tit: 'IC do p95, superior (ms)', f: (m) => LP.ms(m.json.ic95[1]) },
+    { tit: 'Regra aplicada ao JSON (referência)', f: (m) => m.regra_json, cor: (m) => cor(m.regra_json) }
+  ], S.data);
+});
+
+/* 4a. Deriva do p95 em relação à rodada 1 */
+dash.draw('deriva', (el) => {
+  const D = dash.data('deriva');
+  if (!LP.ok(el, [D])) return;
+  LP.linhas(el, {
+    aria: 'Variação do p95 do /predict de cada rodada em relação à rodada 1, por modelo, com a faixa de ±3%. Os valores estão na tabela abaixo.',
+    rows: D.data,
+    panels: [{
+      titulo: 'p95 do /predict em relação à rodada 1', tituloCurto: 'p95 vs. rodada 1', dom: [-3, 4], nice: false,
+      fmt: (v) => (v > 0 ? '+' : '') + LP.f(v, Number.isInteger(v) ? 0 : 1) + '%',
+      faixa: { de: -3, ate: 3, rot: '±3%: não interpretável' },
+      marca: (svg, r, xs, y, tip) => {
+        svg.append('line').attr('x1', xs(0)).attr('x2', xs(0)).attr('y1', y - 9).attr('y2', y + 9).style('stroke', 'var(--cds-chart-reference)');
+        [1, 2, 3, 4].forEach((k) => LP.ponto(svg, xs(r.d[k]), y + (k - 2.5) * 3, LP.cor(k - 1), true, 4).style('fill-opacity', 0.8));
+        LP.alvo(svg, xs, y, tip, [r.modelo, r.d.slice(1).map((v, i) => 'rodada ' + (i + 2) + ': ' + LP.pct(v)).join(' · ')]);
+      }
+    }],
+    valorTit: 'maior',
+    valor: (r) => ({ txt: LP.pct(d3.max(r.d.slice(1))) })
+  });
+});
+
+dash.draw('tab-deriva', (el) => {
+  const D = dash.data('deriva');
+  if (!LP.ok(el, [D])) return;
+  const cols = [{ tit: 'Modelo', f: (r) => r.modelo }, { tit: 'Rodada 1, p95 (ms)', f: (r) => LP.ms(r.v[0]) }];
+  [1, 2, 3, 4].forEach((k) => cols.push(
+    { tit: 'Rodada ' + (k + 1) + ', p95 (ms)', f: (r) => LP.ms(r.v[k]) },
+    { tit: 'vs. rodada 1', f: (r) => LP.pct(r.d[k]), forte: (r) => Math.abs(r.d[k]) >= 3 }
+  ));
+  LP.tabela(el, cols, D.data);
+});
+
+/* 4b. Temperatura por rodada */
+dash.draw('temperatura', (el) => {
+  const R = dash.data('rodadas');
+  if (!LP.ok(el, [R])) return;
+  LP.linhas(el, {
+    aria: 'Temperatura do chip antes e depois de cada execução, por rodada, com o limite térmico de 80 °C. Os valores estão na tabela abaixo.',
+    rows: R.data,
+    panels: [{
+      titulo: 'Temperatura do chip (°C)', dom: [50, 82], nice: false, dec: 0,
+      refs: [{ v: 80, rot: '80 °C: início da redução de frequência', rotCurto: '80 °C', cor: 'var(--cds-chart-status-critical)' }],
+      marca: (svg, r, xs, y, tip) => {
+        const cor = LP.cor(0);
+        r.es.forEach((e) => { LP.ponto(svg, xs(+e.temp_inicio_C), y - 3, cor, false, 3.5); LP.ponto(svg, xs(+e.temp_fim_C), y + 3, cor, true, 3.5).style('fill-opacity', 0.6); });
+        svg.append('line').attr('x1', xs(r.med)).attr('x2', xs(r.med)).attr('y1', y - 9).attr('y2', y + 9).style('stroke', 'var(--color-fg)').style('stroke-width', 2);
+        LP.alvo(svg, xs, y, tip, ['Rodada ' + r.k, r.es.map((e) => e.modelo + ' ' + LP.f(+e.temp_inicio_C, 1) + ' → ' + LP.f(+e.temp_fim_C, 1)).join(' · ')]);
+      }
+    }],
+    valorTit: 'mediana no início',
+    valW: 120,
+    valor: (r) => ({ txt: LP.f(r.med, 1) + ' °C' })
+  });
+});
+
+dash.draw('tab-temperatura', (el) => {
+  const D = dash.data('deriva');
+  if (!LP.ok(el, [D])) return;
+  const cols = [{ tit: 'Modelo', f: (r) => r.modelo }];
+  [0, 1, 2, 3, 4].forEach((k) => cols.push({ tit: 'Rodada ' + (k + 1) + ': início → fim (°C)', f: (r) => LP.f(+r.ex[k].temp_inicio_C, 1) + ' → ' + LP.f(+r.ex[k].temp_fim_C, 1) }));
+  LP.tabela(el, cols, D.data);
+});
+
+/* 4c. Canários */
+dash.draw('tab-canarios', (el) => {
+  const C = dash.data('canarios'), D = dash.data('deriva');
+  if (!LP.ok(el, [C, D])) return;
+  const faixa = (vs, d) => LP.f(d3.min(vs), d) + ' a ' + LP.f(d3.max(vs), d);
+  const linhas = D.data.map((r) => {
+    const de = (k) => C.data.filter((c) => c.modelo === r.modelo && c.canario === k);
+    return { modelo: r.modelo, cpu: de('cpu'), mem: de('mem') };
+  });
+  const cols = [{ tit: 'Modelo', f: (r) => r.modelo }];
+  [['cpu', 'CPU'], ['mem', 'Memória']].forEach(([k, n]) => cols.push(
+    { tit: n + ': antes, p50 (ms)', f: (r) => faixa(r[k].map((c) => c.antes), 2) },
+    { tit: n + ': depois, p50 (ms)', f: (r) => faixa(r[k].map((c) => c.depois), 2) },
+    { tit: n + ': depois ÷ antes', f: (r) => faixa(r[k].map((c) => c.razao), 3) }
+  ));
+  LP.tabela(el, cols, linhas);
+});
+
+dash.draw('tab-canarios-todos', (el) => {
+  const C = dash.data('canarios');
+  if (!LP.ok(el, [C])) return;
+  const rows = C.data.slice().sort((a, b) => a.modelo.localeCompare(b.modelo) || a.canario.localeCompare(b.canario) || a.rodada - b.rodada);
+  LP.tabela(el, [
+    { tit: 'Modelo', f: (c) => c.modelo }, { tit: 'Canário', f: (c) => c.canario === 'cpu' ? 'CPU' : 'Memória' },
+    { tit: 'Rodada', f: (c) => c.rodada }, { tit: 'Antes, p50 (ms)', f: (c) => LP.ms(c.antes) },
+    { tit: 'Depois, p50 (ms)', f: (c) => LP.ms(c.depois) }, { tit: 'Depois ÷ antes', f: (c) => LP.f(c.razao, 3) }
+  ], rows);
+});
+</script>
+
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<!-- Dados agregados da medição (sem a duração de cada requisição) -->
+<script type="text/csv" id="csv-agregado">
+modelo,endpoint,repeticoes,n_por_repeticao,p50_ms,p95_ms,p95_ic_inf_ms,p95_ic_sup_ms,p99_ms,p99_ic_inf_ms,p99_ic_sup_ms,autocorrelacao_lag1_media
+DecisionTree,ping,5,2000,2.548,2.632,2.599,2.658,2.806,2.736,3.184,0.439
+DecisionTree,predict,5,2000,6.919,7.111,7.073,7.161,7.376,7.28,8.514,0.521
+DecisionTree,predict_json,5,2000,7.28,7.459,7.42,7.498,7.71,7.586,8.858,0.513
+LDA,ping,5,2000,2.557,2.641,2.607,2.664,2.827,2.75,3.258,0.554
+LDA,predict,5,2000,7.499,7.71,7.627,7.785,8.086,7.88,9.255,0.487
+LDA,predict_json,5,2000,7.838,8.031,7.932,8.109,8.421,8.221,9.589,0.475
+GaussianNB,ping,5,2000,2.553,2.637,2.588,2.672,2.816,2.743,3.183,0.503
+GaussianNB,predict,5,2000,9.3,9.528,9.331,9.665,10.156,9.743,11.487,0.432
+GaussianNB,predict_json,5,2000,9.637,9.872,9.697,9.98,10.285,10.035,11.884,0.495
+QDA,ping,5,2000,2.541,2.621,2.583,2.649,2.809,2.733,3.225,0.433
+QDA,predict,5,2000,9.319,9.555,9.369,9.685,10.25,9.84,11.534,0.414
+QDA,predict_json,5,2000,9.671,9.912,9.72,10.019,10.474,10.107,11.863,0.443
+GradientBoosting,ping,5,2000,2.564,2.647,2.596,2.687,2.806,2.742,3.276,0.58
+GradientBoosting,predict,5,2000,7.562,7.77,7.692,7.843,8.138,7.948,9.153,0.49
+GradientBoosting,predict_json,5,2000,7.924,8.107,8.0,8.192,8.444,8.244,9.753,0.473
+SVM,ping,5,2000,2.551,2.631,2.594,2.666,2.816,2.735,3.232,0.475
+SVM,predict,5,2000,10.033,10.231,10.121,10.293,11.032,10.518,12.277,0.402
+SVM,predict_json,5,2000,10.375,10.598,10.374,10.756,11.282,10.8,12.522,0.438
+RandomForest,ping,5,2000,2.556,2.639,2.592,2.685,2.79,2.738,3.182,0.406
+RandomForest,predict,5,2000,26.062,26.735,26.487,26.874,31.205,29.211,32.287,0.035
+RandomForest,predict_json,5,2000,26.498,27.157,26.954,27.256,31.317,29.155,32.571,0.456
+</script>
+<script type="text/csv" id="csv-decomp">
+modelo,ping_p50_ms,predict_p50_ms,predict_menos_ping_ms,em_processo_p50_ms,razao_predict_menos_ping_sobre_em_processo,json_menos_predict_ms,veredito_sla
+DecisionTree,2.548,6.919,4.371,3.483,1.255,0.361,passa
+LDA,2.557,7.499,4.942,4.061,1.217,0.338,passa
+GaussianNB,2.553,9.3,6.748,5.761,1.171,0.337,passa
+QDA,2.541,9.319,6.778,5.863,1.156,0.352,passa
+GradientBoosting,2.564,7.562,4.997,4.198,1.19,0.362,passa
+SVM,2.551,10.033,7.482,6.663,1.123,0.342,falha
+RandomForest,2.556,26.062,23.506,22.448,1.047,0.436,falha
+</script>
+<script type="text/csv" id="csv-reps">
+modelo,endpoint,rep1,rep2,rep3,rep4,rep5
+DecisionTree,ping,2.597,2.631,2.62,2.631,2.664
+DecisionTree,predict,7.057,7.145,7.113,7.137,7.131
+DecisionTree,predict_json,7.409,7.457,7.495,7.462,7.471
+LDA,ping,2.598,2.651,2.644,2.655,2.632
+LDA,predict,7.598,7.709,7.747,7.759,7.715
+LDA,predict_json,7.901,8.031,8.067,8.082,8.02
+GaussianNB,ping,2.57,2.643,2.647,2.64,2.65
+GaussianNB,predict,9.272,9.507,9.592,9.608,9.51
+GaussianNB,predict_json,9.644,9.841,9.908,9.93,9.87
+QDA,ping,2.569,2.631,2.623,2.629,2.63
+QDA,predict,9.32,9.52,9.532,9.634,9.629
+QDA,predict_json,9.675,9.861,9.877,9.982,9.955
+GradientBoosting,ping,2.579,2.638,2.667,2.668,2.655
+GradientBoosting,predict,7.676,7.822,7.738,7.816,7.785
+GradientBoosting,predict_json,7.973,8.153,8.076,8.111,8.166
+SVM,ping,2.579,2.635,2.637,2.651,2.647
+SVM,predict,10.102,10.201,10.295,10.224,10.211
+SVM,predict_json,10.325,10.607,10.732,10.523,10.639
+RandomForest,ping,2.598,2.699,2.624,2.638,2.634
+RandomForest,predict,26.5,26.85,26.569,26.654,26.832
+RandomForest,predict_json,26.994,27.284,27.002,27.082,27.166
+</script>
+<script type="text/csv" id="csv-canarios_csv">
+modelo,canario,p50_antes_ms,p50_depois_ms
+DecisionTree,cpu,31.036,30.977
+DecisionTree,cpu,30.774,30.742
+DecisionTree,cpu,31.005,30.963
+DecisionTree,cpu,31.025,31.021
+DecisionTree,cpu,31.047,31.05
+DecisionTree,mem,88.338,88.506
+DecisionTree,mem,90.007,90.431
+DecisionTree,mem,91.138,91.576
+DecisionTree,mem,91.346,90.499
+DecisionTree,mem,91.593,91.599
+LDA,cpu,30.689,30.671
+LDA,cpu,30.788,30.782
+LDA,cpu,30.995,31.076
+LDA,cpu,31.221,31.122
+LDA,cpu,30.782,31.623
+LDA,mem,88.062,89.141
+LDA,mem,89.327,89.835
+LDA,mem,91.262,92.538
+LDA,mem,91.253,91.014
+LDA,mem,91.126,92.289
+GaussianNB,cpu,30.904,30.991
+GaussianNB,cpu,31.001,31.126
+GaussianNB,cpu,31.368,30.987
+GaussianNB,cpu,31.997,31.846
+GaussianNB,cpu,32.049,31.058
+GaussianNB,mem,87.996,87.636
+GaussianNB,mem,91.264,90.67
+GaussianNB,mem,91.018,90.612
+GaussianNB,mem,91.207,90.808
+GaussianNB,mem,91.259,90.492
+QDA,cpu,30.946,30.963
+QDA,cpu,30.88,31.68
+QDA,cpu,31.103,31.174
+QDA,cpu,31.078,30.971
+QDA,cpu,31.511,31.047
+QDA,mem,88.279,89.408
+QDA,mem,91.201,92.206
+QDA,mem,89.719,92.089
+QDA,mem,91.026,91.994
+QDA,mem,90.367,92.293
+GradientBoosting,cpu,30.953,30.742
+GradientBoosting,cpu,30.783,30.835
+GradientBoosting,cpu,30.805,30.878
+GradientBoosting,cpu,31.148,30.871
+GradientBoosting,cpu,30.797,31.057
+GradientBoosting,mem,88.05,88.319
+GradientBoosting,mem,91.132,91.238
+GradientBoosting,mem,89.298,91.361
+GradientBoosting,mem,91.427,91.44
+GradientBoosting,mem,91.384,91.615
+SVM,cpu,30.718,30.758
+SVM,cpu,31.042,30.987
+SVM,cpu,31.243,31.087
+SVM,cpu,31.054,32.98
+SVM,cpu,30.797,30.878
+SVM,mem,88.011,91.105
+SVM,mem,91.221,91.387
+SVM,mem,90.448,91.51
+SVM,mem,91.536,91.748
+SVM,mem,91.405,91.497
+RandomForest,cpu,30.712,30.74
+RandomForest,cpu,30.71,30.819
+RandomForest,cpu,30.855,30.968
+RandomForest,cpu,32.185,31.068
+RandomForest,cpu,30.847,30.762
+RandomForest,mem,91.034,91.641
+RandomForest,mem,90.125,91.509
+RandomForest,mem,91.339,91.663
+RandomForest,mem,91.209,91.319
+RandomForest,mem,89.874,91.345
+</script>
+<script type="text/csv" id="csv-execucoes">
+modelo,rep,hora_inicio,temp_inicio_C,hora_fim,temp_fim_C,throttled_inicio,throttled_fim,temp_janela_antes_C,temp_janela_depois_C,freq_kHz,governor,threads
+DecisionTree,1,18:28:45,52.1,18:29:53,56.0,0x0,0x0,53.556,56.965,1800000,performance,1
+DecisionTree,2,18:52:18,64.2,18:53:27,65.7,0x0,0x0,64.757,65.244,1800000,performance,1
+DecisionTree,3,18:53:47,62.8,18:54:56,65.2,0x0,0x0,64.27,65.731,1800000,performance,1
+DecisionTree,4,19:17:30,65.2,19:18:39,67.2,0x0,0x0,67.192,67.192,1800000,performance,1
+DecisionTree,5,19:18:59,64.7,19:20:08,67.6,0x0,0x0,66.218,67.679,1800000,performance,1
+GaussianNB,1,18:31:44,55.5,18:33:01,60.3,0x0,0x0,56.478,59.4,1800000,performance,1
+GaussianNB,2,18:49:08,61.8,18:50:27,66.2,0x0,0x0,63.783,66.705,1800000,performance,1
+GaussianNB,3,18:56:48,63.7,18:58:08,65.2,0x0,0x0,64.757,65.731,1800000,performance,1
+GaussianNB,4,19:14:18,65.2,19:15:38,67.6,0x0,0x0,66.705,67.679,1800000,performance,1
+GaussianNB,5,19:22:00,65.2,19:23:19,68.6,0x0,0x0,67.192,68.653,1800000,performance,1
+GradientBoosting,1,18:34:59,57.9,18:36:10,61.8,0x0,0x0,59.4,60.861,1800000,performance,1
+GradientBoosting,2,18:45:56,61.8,18:47:08,64.2,0x0,0x0,63.783,64.27,1800000,performance,1
+GradientBoosting,3,19:00:07,64.2,19:01:19,66.2,0x0,0x0,65.244,66.705,1800000,performance,1
+GradientBoosting,4,19:11:06,64.7,19:12:18,68.1,0x0,0x0,65.731,66.705,1800000,performance,1
+GradientBoosting,5,19:25:19,65.7,19:26:32,68.1,0x0,0x0,67.192,69.14,1800000,performance,1
+LDA,1,18:30:13,55.0,18:31:24,57.4,0x0,0x0,55.504,57.939,1800000,performance,1
+LDA,2,18:50:47,62.3,18:51:58,65.2,0x0,0x0,63.783,64.757,1800000,performance,1
+LDA,3,18:55:16,63.3,18:56:28,66.7,0x0,0x0,64.27,67.192,1800000,performance,1
+LDA,4,19:15:58,64.7,19:17:10,67.6,0x0,0x0,67.192,67.679,1800000,performance,1
+LDA,5,19:20:28,65.7,19:21:40,67.6,0x0,0x0,66.218,67.679,1800000,performance,1
+QDA,1,18:33:21,57.4,18:34:39,60.8,0x0,0x0,57.939,60.861,1800000,performance,1
+QDA,2,18:47:28,61.3,18:48:48,65.2,0x0,0x0,62.809,64.757,1800000,performance,1
+QDA,3,18:58:28,62.8,18:59:47,66.2,0x0,0x0,65.731,66.705,1800000,performance,1
+QDA,4,19:12:38,64.7,19:13:58,67.2,0x0,0x0,65.731,67.679,1800000,performance,1
+QDA,5,19:23:39,64.7,19:24:59,67.2,0x0,0x0,66.705,68.166,1800000,performance,1
+RandomForest,1,18:38:17,58.9,18:40:52,63.3,0x0,0x0,60.374,63.783,1800000,performance,1
+RandomForest,2,18:41:12,60.8,18:43:47,63.3,0x0,0x0,60.861,65.244,1800000,performance,1
+RandomForest,3,19:03:28,64.2,19:06:03,67.2,0x0,0x0,65.244,68.166,1800000,performance,1
+RandomForest,4,19:06:23,65.2,19:08:57,67.2,0x0,0x0,66.218,68.166,1800000,performance,1
+RandomForest,5,19:28:40,64.7,19:31:16,68.1,0x0,0x0,67.192,68.166,1800000,performance,1
+SVM,1,18:36:30,58.4,18:37:57,61.3,0x0,0x0,61.348,61.835,1800000,performance,1
+SVM,2,18:44:07,60.8,18:45:36,64.7,0x0,0x0,63.783,64.757,1800000,performance,1
+SVM,3,19:01:39,62.8,19:03:08,66.2,0x0,0x0,66.705,67.679,1800000,performance,1
+SVM,4,19:09:17,64.7,19:10:46,67.6,0x0,0x0,67.679,68.166,1800000,performance,1
+SVM,5,19:26:52,65.7,19:28:20,68.1,0x0,0x0,67.192,68.166,1800000,performance,1
+</script>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+<script>dash._runAll();</script>
+</body>
+</html>

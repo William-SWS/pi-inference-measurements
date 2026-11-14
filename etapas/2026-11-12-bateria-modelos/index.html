@@ -17,11 +17,11 @@
   <p id="etapa-meta"></p>
   <header id="topo" class="lp-topo">
    <div class="lp-topo-texto">
-    <p class="lp-kicker">7 modelos · 11 configurações · desktop desligado · governor performance · Raspberry Pi 4 Model B, 4 GB, sem ventoinha · medições exploratórias</p>
-    <h1 class="lp-titulo">Bateria de referência: latência em processo e memória de 11 configurações de modelo</h1>
+    <p class="lp-kicker">Detecção de ataques DoS em tráfego MQTT · Raspberry Pi 4 · bateria de 12/11/2026 · medições exploratórias</p>
+    <h1 class="lp-titulo">Quanto tempo e quanta memória 7 modelos de detecção gastam no Raspberry Pi</h1>
     <div class="lp-resumo-painel">
     <p class="lp-rot">Resumo</p>
-    <p class="lp-lede" id="resumo">Com B = 1, só as <b class="lp-num" data-draw="num" data-source="resumo" data-field="n_acima" data-dec="0">—</b> configurações de RandomForest já passam de 10 ms em processo (p95 de <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_max">—</b> ms). As outras ficam entre <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_min">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_max">—</b> ms, com folga de <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_max" data-dec="1">—</b> ms para o HTTP, que ainda não foi medido. O custo fixo por chamada domina em B = 1; só o SVM tem custo alto por registro. O modelo que mais acrescenta memória ocupa <b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max" data-dec="1">—</b> MiB (<b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</b>% da RAM). A temperatura chegou a <b class="lp-num" data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</b> °C, sem limitação.</p>
+    <p class="lp-lede" id="resumo">Quando o modelo analisa um pacote por vez (B = 1), só a RandomForest já passa do limite de 10 ms do projeto: 95% das chamadas dela levaram até <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_max">—</b> ms, conforme o seletor. Nos outros modelos esse tempo fica entre <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_min">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_max">—</b> ms, o que deixa de <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_max" data-dec="1">—</b> ms para a rede, que ainda não foi medida. Nenhum modelo acrescenta mais de <b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max" data-dec="1">—</b> MiB de memória (<b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</b>% da RAM do Pi). O chip chegou a <b class="lp-num" data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</b> °C e em nenhum momento reduziu a frequência por calor.</p>
     </div>
    </div>
    <section class="lp-dispositivo" id="dispositivo" aria-labelledby="dispositivo-rot">
@@ -33,32 +33,47 @@
      <div><dt>Refrigeração</dt><dd>sem ventoinha</dd></div>
      <div><dt>Acesso</dt><dd>só por SSH</dd></div>
     </dl>
-    <p class="lp-disp-estado"><span class="lp-led" aria-hidden="true"></span><span>Limitação por calor ou subtensão: nenhuma, antes e depois das <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_ok" data-dec="0">—</span> de <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_exec" data-dec="0">—</span> execuções (<span class="lp-mono">throttled = 0x0</span>)</span></p>
+    <p class="lp-disp-estado"><span class="lp-led" aria-hidden="true"></span><span>Redução de frequência por calor ou por falta de tensão: nenhuma, antes e depois das <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_ok" data-dec="0">—</span> de <span class="lp-num" data-draw="num" data-source="resumo" data-field="n_exec" data-dec="0">—</span> execuções (<span class="lp-mono">throttled = 0x0</span>)</span></p>
    </section>
   </header>
 
+  <section class="lp-guia" id="como-ler" aria-labelledby="como-ler-tit">
+    <h2 id="como-ler-tit">Como ler esta página</h2>
+    <p class="lp-guia-intro">O projeto quer detectar ataques de negação de serviço (DoS) em tráfego MQTT, um protocolo de mensagens comum em internet das coisas, rodando o detector num aparelho pequeno, o Raspberry Pi. Esta página mostra quanto custa rodar cada modelo ali, em tempo e em memória. Os modelos já estavam treinados, e a página não diz se eles acertam.</p>
+    <dl>
+      <div><dt>Chamada</dt><dd>Cada vez que o programa entrega dados ao modelo e recebe a classificação (o método <code>predict</code>). O tempo medido é só o dessa chamada.</dd></div>
+      <div><dt>B, o tamanho do lote</dt><dd>Quantos registros vão em cada chamada; um registro são os dados de um pacote. <b>B = 1</b> é o detector decidindo um pacote por vez, o caso em que o tempo de resposta importa. <b>B = 1024</b> é processar 1.024 pacotes de uma vez, em lote.</dd></div>
+      <div><dt>p50, p95, p99</dt><dd>Percentis dos tempos das chamadas. p50 (mediana): metade das chamadas levou até esse tempo. p95: só 1 chamada em cada 20 foi mais lenta. p99: só 1 em cada 100.</dd></div>
+      <div><dt>Limite de 10 ms</dt><dd>O projeto quer que o detector responda em até 10 ms no p95, contando a rede (HTTP). Aqui se mediu só o modelo. Quem já passa de 10 ms não cumpre o limite; quem fica abaixo ainda depende do que a rede vai somar.</dd></div>
+      <div><dt>Configuração e seletor</dt><dd>Configuração é um modelo com um seletor de variáveis, que escolhe quais medidas de cada pacote o modelo recebe: LowVariance deixa 11; MutualInformation k=5 e k=8 deixam 5 e 8. GradientBoosting e RandomForest foram medidos com os três seletores; os outros modelos, só com LowVariance.</dd></div>
+      <div><dt>Repetição</dt><dd>Uma execução nova do programa, que faz 2.000 chamadas cronometradas seguidas. Cada configuração foi medida em 5 repetições (3 nos controles da árvore).</dd></div>
+      <div><dt>Intervalos (barras)</dt><dd>Intervalo de 95% em volta do p95 e do p99: a faixa de valores compatível com estas repetições. É exploratório e não cobre outros aparelhos nem outros dias.</dd></div>
+      <div><dt>Unidades</dt><dd>ms = milissegundo (1/1.000 de segundo); µs = microssegundo (1/1.000 de ms); MiB = mebibyte, cerca de 1,05 milhão de bytes.</dd></div>
+    </dl>
+  </section>
+
   <section id="foco" class="lp-sec">
-    <p class="lp-foco-rot">Condição de todas as execuções: desktop desligado · governor performance (1,8 GHz) · sem registrador ao lado · 1 thread por processo</p>
+    <p class="lp-foco-rot">Todas as execuções rodaram nas mesmas condições: sem interface gráfica, com a CPU fixa na frequência máxima (1,8 GHz, governor performance), nada medindo ao lado e 1 thread por processo</p>
     <div class="lp-tiles">
       <div class="lp-card">
-        <span class="lp-card-rot">Configurações com p95 acima de 10 ms em processo · B = 1</span>
+        <span class="lp-card-rot">Configurações que passam de 10 ms com um pacote por vez (p95, B = 1)</span>
         <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="n_acima" data-dec="0">—</span><span class="lp-card-un">de 11</span></span>
-        <span class="lp-card-sub">Todas de RandomForest, com os 3 seletores</span>
+        <span class="lp-card-sub">As três são RandomForest, uma com cada seletor</span>
       </div>
       <div class="lp-card">
-        <span class="lp-card-rot">Menor folga até 10 ms, nas demais · B = 1</span>
+        <span class="lp-card-rot">Menor sobra até 10 ms entre as que ficam abaixo (B = 1)</span>
         <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="folga_min" data-dec="1">—</span><span class="lp-card-un">ms</span></span>
-        <span class="lp-card-sub">SVM. Folga = 10 ms menos o limite superior do intervalo do p95; o HTTP ainda vai somar</span>
+        <span class="lp-card-sub">É a do SVM. Esse é o tempo que resta para a rede, contado a partir do limite superior do intervalo do p95</span>
       </div>
       <div class="lp-card">
-        <span class="lp-card-rot">Maior memória acrescentada (ΔPSS)</span>
+        <span class="lp-card-rot">Maior memória acrescentada por um modelo (ΔPSS)</span>
         <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="dpss_max" data-dec="1">—</span><span class="lp-card-un">MiB</span></span>
-        <span class="lp-card-sub">RandomForest · MutualInformation k=5: <span class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</span>% dos 3.795 MiB de RAM</span>
+        <span class="lp-card-sub">RandomForest · MutualInformation k=5, ou <span class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</span>% dos 3.795 MiB de RAM</span>
       </div>
       <div class="lp-card">
         <span class="lp-card-rot">Temperatura máxima do chip</span>
         <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</span><span class="lp-card-un">°C</span></span>
-        <span class="lp-card-sub">Abaixo dos 80 °C do limite térmico. Os controles da árvore derivaram de +<span class="lp-num" data-draw="num" data-source="resumo" data-field="der_min" data-dec="1">—</span>% a +<span class="lp-num" data-draw="num" data-source="resumo" data-field="der_max" data-dec="1">—</span>%</span>
+        <span class="lp-card-sub">O Pi 4 só reduz a frequência a partir de 80 °C. A árvore medida no início e no fim ficou de <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_min" data-dec="1">—</span>% a <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_max" data-dec="1">—</span>% mais lenta</span>
       </div>
     </div>
   </section>
@@ -66,101 +81,99 @@
   <aside class="lp-ressalvas" id="ressalvas">
     <h2>Ressalvas</h2>
     <ul>
-      <li>Dados exploratórios, de um só Pi sem ventoinha. Não generalizar; nenhum número aqui é resultado final.</li>
-      <li>Latência em processo: só o <code>predict</code>, sem rede, HTTP nem JSON. O limite de p95 ≤ 10 ms vale via HTTP, que não foi medido; aqui só dá para ver quem já o ultrapassa.</li>
-      <li>A ordem não foi sorteada e a temperatura subiu ao longo da bateria (de 51 °C a 72 °C no início de cada execução); os modelos pesados rodaram mais quentes. Os controles da árvore derivaram de +1,4% a +2,0%: <b>diferenças menores que ~3% entre modelos não são interpretáveis</b>.</li>
-      <li>Poucas repetições: 5 (3 nos controles; 10 no SVM em B = 1024). Com tão poucos processos, o intervalo bootstrap do p95 subestima a incerteza. Por isso o intervalo do p95 é o mais largo entre o bootstrap e o IC-t das repetições; onde blocos 2× ou 4× maiores alargam o bootstrap em mais de 10%, vale a faixa mais larga.</li>
-      <li>Pseudorreplicação: todas as repetições são do mesmo Pi, boot e ambiente. Os intervalos não cobrem outras máquinas, boots nem temperaturas ambiente.</li>
-      <li>O SVM em B = 1024 tem 1.000 chamadas por repetição (o p99 de cada uma vale poucos pontos) e não entra no limite de latência.</li>
-      <li>ΔPSS abaixo de ~1 MiB não se distingue de zero: o PSS do modelo nulo varia de 95,4 a 96,3 MiB entre execuções. O ΔPSS negativo do LDA é ruído.</li>
-      <li>Sem qualidade de classificação (MCC, F1) nestes dados: não há ranking nem fronteira de Pareto aqui.</li>
+      <li>São medições exploratórias de um único Raspberry Pi sem ventoinha. Nenhum número aqui é resultado final, e outro aparelho pode dar valores diferentes.</li>
+      <li>Os tempos são só do modelo (o <code>predict</code>), sem rede, HTTP nem conversão para JSON. Com estes dados dá para dizer quem já passa do limite de 10 ms, mas não quem o cumpre.</li>
+      <li>Os modelos rodaram numa ordem fixa, não sorteada, e o chip esquentou ao longo da bateria: no início de cada execução a temperatura foi de 51 °C a 72 °C, e os modelos mais pesados rodaram mais quentes. A mesma árvore, medida no início e no fim, ficou de 1,4% a 2,0% mais lenta. Por isso, <b>diferenças menores que ~3% entre modelos não devem ser interpretadas</b>.</li>
+      <li>Há poucas repetições: 5 por configuração (3 nos controles da árvore; 10 no SVM com B = 1024). Com tão poucas, o intervalo bootstrap subestima a incerteza do p95. Para o p95, a página usa o mais largo entre o bootstrap e o IC-t das repetições; quando blocos 2× ou 4× maiores alargam o bootstrap em mais de 10%, usa a faixa mais larga.</li>
+      <li>Todas as repetições vêm do mesmo Pi, ligado uma única vez, no mesmo ambiente (pseudorreplicação). Os intervalos medem a variação entre repetições, não entre aparelhos, reinícios ou temperaturas da sala.</li>
+      <li>O SVM com B = 1024 tem 1.000 chamadas por repetição, em vez de 2.000, e por isso o p99 de cada repetição se apoia em poucas chamadas. Esse caso não entra no limite de latência.</li>
+      <li>Abaixo de ~1 MiB, a memória acrescentada não se distingue de zero: a memória do programa sem modelo variou de 95,4 a 96,3 MiB entre execuções. O valor negativo do LDA é ruído.</li>
+      <li>A página não mede se os modelos acertam (MCC, F1). Por isso não há ranking: um modelo rápido pode classificar mal.</li>
     </ul>
   </aside>
 
   <ul class="lp-legenda" aria-label="Cores dos seletores de variáveis">
     <li><span class="lp-sw" data-g="0"></span>LowVariance (11 variáveis)</li>
-    <li><span class="lp-sw" data-g="1"></span>MutualInformation k=5</li>
-    <li><span class="lp-sw" data-g="2"></span>MutualInformation k=8</li>
+    <li><span class="lp-sw" data-g="1"></span>MutualInformation k=5 (5 variáveis)</li>
+    <li><span class="lp-sw" data-g="2"></span>MutualInformation k=8 (8 variáveis)</li>
   </ul>
 
   <section id="limite" class="lp-sec">
-    <h2>Quais modelos já passam de 10 ms com B = 1?</h2>
-    <p class="lp-pergunta">Percentis das durações das chamadas de todas as repetições juntas. A linha tracejada é o limite do projeto, que vale via HTTP. A coluna da direita é o quanto sobra até 10 ms para somar o HTTP.</p>
+    <h2>Quais modelos já passam de 10 ms ao analisar um pacote por vez?</h2>
+    <p class="lp-pergunta">Cada linha é uma configuração, com as chamadas de todas as repetições juntas. A linha vermelha marca o limite de 10 ms. A coluna da direita mostra quanto tempo sobra até ele para a rede, que ainda vai somar.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
-      <li><span class="lp-mk">│</span>p50</li>
-      <li><span class="lp-mk">●</span>p95, com intervalo (barra grossa)</li>
-      <li><span class="lp-mk">○</span>p99, com intervalo (barra fina)</li>
+      <li><span class="lp-mk">│</span>p50 (mediana)</li>
+      <li><span class="lp-mk">●</span>p95, com o intervalo na barra grossa</li>
+      <li><span class="lp-mk">○</span>p99, com o intervalo na barra fina</li>
     </ul>
     <div class="lp-chart" data-draw="latencia" data-source="cfg"></div>
-    <p class="lp-nota">Os intervalos são exploratórios e, nesta escala, quase não aparecem: passe o mouse sobre uma linha para ver os valores e o método. Folga = 10 ms menos o limite superior do intervalo do p95.</p>
+    <p class="lp-nota">Nesta escala, as barras do p95 quase somem atrás do ponto, porque a incerteza é pequena perto dos tempos. Passe o mouse sobre uma linha para ver os valores exatos e o método de cada intervalo. A sobra é 10 ms menos o limite superior do intervalo do p95.</p>
   </section>
 
   <section id="cauda" class="lp-sec">
-    <h2>Onde a cauda é maior? A autocorrelação muda entre B = 1 e B = 1024?</h2>
-    <p class="lp-pergunta">À esquerda, o tamanho da cauda (p99 dividido pelo p50); à direita, a autocorrelação entre chamadas seguidas. Alta = chamadas lentas vêm em grupos.</p>
+    <h2>Em quais modelos as chamadas lentas pesam mais? Isso muda entre B = 1 e B = 1024?</h2>
+    <p class="lp-pergunta">A cauda são as chamadas mais lentas. À esquerda, p99 dividido pelo p50: 1,18× quer dizer que a chamada do p99 levou 18% mais que a mediana. À direita, a autocorrelação, que mede se as chamadas lentas vêm seguidas. Perto de 0, cada chamada independe da anterior; quanto mais alta, mais as lentas aparecem em grupos, e menos informação independente as 2.000 chamadas carregam.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
-      <li><span class="lp-mk">●</span>B = 1</li>
-      <li><span class="lp-mk">○</span>B = 1024</li>
+      <li><span class="lp-mk">●</span>B = 1 (um pacote por chamada)</li>
+      <li><span class="lp-mk">○</span>B = 1024 (lote)</li>
     </ul>
     <div class="lp-chart" data-draw="cauda" data-source="cfg"></div>
-    <p class="lp-nota">A autocorrelação é a média das repetições. No SVM, B = 1024 tem 1.000 chamadas por repetição em vez de 2.000.</p>
+    <p class="lp-nota">A autocorrelação é a média das repetições. No SVM com B = 1024 cada repetição tem 1.000 chamadas em vez de 2.000.</p>
   </section>
 
   <section id="custo" class="lp-sec">
-    <h2>Quanto custa cada chamada e cada registro a mais?</h2>
-    <p class="lp-pergunta">Ajuste t(B) = a + b·B com as medianas (p50) de B = 1 e B = 1024: <i>a</i> é o custo de qualquer chamada, <i>b</i> o de cada registro a mais. A última coluna é quantos registros por segundo o modelo processa em lote.</p>
+    <h2>Quanto custa cada chamada, e quanto custa cada pacote a mais?</h2>
+    <p class="lp-pergunta">Toda chamada tem um custo de entrada, mesmo com um pacote só (o custo fixo, <i>a</i>), e cada pacote a mais acrescenta um pouco (o custo por registro, <i>b</i>). Os dois saem da reta t(B) = a + b·B traçada pelas medianas de B = 1 e B = 1024. Com B = 1 quase todo o tempo é custo fixo; em lote ele se dilui. A última coluna mostra quantos pacotes por segundo cada modelo classifica com B = 1024.</p>
     <div class="lp-tabela-rolagem" data-draw="custo" data-source="cfg"></div>
-    <p class="lp-nota">Uma reta por dois pontos: não verifica se o custo é linear entre eles.</p>
+    <p class="lp-nota">A reta passa só por dois pontos e não verifica se o custo cresce em linha reta entre eles.</p>
   </section>
 
   <section id="seletor" class="lp-sec">
-    <h2>O seletor muda a latência ou a memória do mesmo modelo?</h2>
-    <p class="lp-pergunta">Com B = 1, o seletor muda o p95 em até <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1_max" data-dec="1">—</b>%, dentro da deriva térmica. Com B = 1024, as versões com MutualInformation chegam a ser <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1024_max" data-dec="1">—</b>% mais rápidas, mesmo tendo rodado depois e mais quentes. Diferenças a partir de 3% em negrito.</p>
+    <h2>Trocar o seletor muda o tempo ou a memória do mesmo modelo?</h2>
+    <p class="lp-pergunta">GradientBoosting e RandomForest foram medidos com os três seletores. Com um pacote por vez (B = 1), trocar o seletor mudou o p95 em até <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1_max" data-dec="1">—</b>%, dentro da variação causada pelo aquecimento. Em lote (B = 1024), as versões com MutualInformation, que recebem menos variáveis, chegaram a ser <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1024_max" data-dec="1">—</b>% mais rápidas, mesmo tendo rodado depois e com o chip mais quente. Diferenças de 3% ou mais estão em negrito.</p>
     <div class="lp-tabela-rolagem" data-draw="seletor" data-source="cfg"></div>
   </section>
 
   <section id="memoria" class="lp-sec">
     <h2>Quanta memória cada modelo acrescenta?</h2>
-    <p class="lp-pergunta">ΔPSS: o PSS do processo menos o do modelo nulo na mesma repetição. A faixa cinza é a região que não se distingue de zero. À direita, a mediana como fração da RAM do Pi (3.795 MiB).</p>
+    <p class="lp-pergunta">ΔPSS é a memória que o programa ocupa com o modelo carregado menos a que ele ocupa com um modelo nulo, que responde sempre a mesma coisa. A faixa cinza (±1 MiB) é a variação normal do sistema: o que cai ali não se distingue de zero. À direita, a mediana como fração da RAM do Pi.</p>
     <div class="lp-chart" data-draw="memoria" data-source="cfg"></div>
-    <p class="lp-nota">Cada ponto é uma repetição. A memória do SVM vem das duas metades de B = 1024. O pico de memória residente (maxrss) fica em média <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_max" data-dec="1">—</b> MiB acima do PSS em todas as configurações.</p>
+    <p class="lp-nota">Cada ponto é uma repetição. A memória do SVM vem das duas metades com B = 1024. O pico de memória do processo (maxrss) fica, em média, <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_max" data-dec="1">—</b> MiB acima do PSS em todas as configurações.</p>
   </section>
 
   <section id="temperatura" class="lp-sec">
-    <h2>A temperatura chegou perto de 80 °C? Os controles mostram deriva?</h2>
-    <p class="lp-pergunta">As 14 execuções na ordem real, com a temperatura do chip antes e depois de cada uma. Entre o controle do início e o do fim, a árvore ficou <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1" data-dec="1">—</span>%</b> mais lenta no p50 e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1" data-dec="1">—</span>%</b> no p95 com B = 1, e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1024" data-dec="1">—</span>%</b> e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1024" data-dec="1">—</span>%</b> com B = 1024.</p>
+    <h2>O chip chegou perto de 80 °C? O aquecimento mudou os tempos?</h2>
+    <p class="lp-pergunta">O Pi não tem ventoinha, e a partir de 80 °C ele reduz a frequência da CPU, o que deixaria as chamadas mais lentas. O gráfico mostra as 14 execuções na ordem em que rodaram, com a temperatura antes e depois de cada uma. Para ver o efeito do aquecimento, a mesma árvore de decisão abriu e fechou a bateria. No fim ela estava <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1" data-dec="1">—</span>%</b> mais lenta no p50 e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1" data-dec="1">—</span>%</b> no p95 com B = 1, e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1024" data-dec="1">—</span>%</b> e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1024" data-dec="1">—</span>%</b> com B = 1024.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
-      <li><span class="lp-mk">○</span>antes</li>
+      <li><span class="lp-mk">○</span>temperatura antes da execução</li>
       <li><span class="lp-mk">●</span>depois</li>
     </ul>
     <div class="lp-chart" data-draw="temperatura" data-source="execucoes"></div>
-    <p class="lp-nota">Todas as leituras, antes e depois, deram throttled = 0x0. Ordem e temperatura estão misturadas: a deriva dos controles não separa uma da outra.</p>
+    <p class="lp-nota">Todas as leituras, antes e depois, deram throttled = 0x0, ou seja, nenhuma redução de frequência. Como a ordem não foi sorteada, a diferença entre os dois controles mistura o efeito do calor com o do tempo decorrido.</p>
   </section>
 
   <section id="svm" class="lp-sec">
-    <h2>O SVM em B = 1024 deriva entre as duas metades?</h2>
-    <p class="lp-pergunta">As duas metades (5 repetições × 1.000 chamadas cada, com 5 minutos de descanso entre elas). As medianas das metades diferem <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p50" data-dec="1">—</b>% no p50 e <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p95" data-dec="1">—</b>% no p95; a repetição mais lenta é a <b class="lp-num" data-draw="num" data-source="svm" data-field="lenta_rep" data-dec="0">—</b>ª da metade <span data-draw="num" data-source="svm" data-field="lenta_metade" data-dec="-1">—</span> (<b class="lp-num">+<span data-draw="num" data-source="svm" data-field="lenta_pct" data-dec="1">—</span>%</b> sobre a mediana dela).</p>
+    <h2>O SVM em lote mudou entre as duas metades da medição?</h2>
+    <p class="lp-pergunta">Com B = 1024, o SVM leva cerca de 0,32 s por chamada. Ele foi medido em duas metades de 5 repetições, com 1.000 chamadas cada e 5 minutos de descanso entre elas. As medianas das metades diferem <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p50" data-dec="1">—</b>% no p50 e <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p95" data-dec="1">—</b>% no p95. A repetição mais lenta é a <b class="lp-num" data-draw="num" data-source="svm" data-field="lenta_rep" data-dec="0">—</b>ª da metade <span data-draw="num" data-source="svm" data-field="lenta_metade" data-dec="-1">—</span>, <b class="lp-num">+<span data-draw="num" data-source="svm" data-field="lenta_pct" data-dec="1">—</span>%</b> acima da mediana da metade.</p>
     <div class="lp-chart" style="min-height:0" data-draw="svm" data-source="repeticoes"></div>
-    <p class="lp-nota">Cada ponto é uma repetição; o traço vertical é a mediana da metade. Diferença = metade b em relação à metade a.</p>
+    <p class="lp-nota">Cada ponto é uma repetição; o traço vertical é a mediana da metade. As diferenças são da metade b em relação à metade a.</p>
   </section>
 
   <details class="lp-glossario" id="glossario">
-    <summary>Termos usados nesta página</summary>
+    <summary>Termos técnicos e nomes dos modelos</summary>
     <dl>
-      <dt>Repetição</dt><dd>Um processo novo, com 1 thread. Por B: 200 chamadas de aquecimento descartadas e 2.000 cronometradas (no SVM com B = 1024: 20 e 1.000).</dd>
-      <dt>Execução</dt><dd>Uma configuração medida com 5 repetições (3 nos controles da árvore).</dd>
-      <dt>B (tamanho do lote)</dt><dd>Registros por chamada. B = 1 é o detector que decide um pacote por vez; B = 1024 é processamento em lote.</dd>
-      <dt>Latência em processo</dt><dd>Só o <code>predict</code>, sem rede, HTTP nem JSON.</dd>
-      <dt>p50, p95, p99</dt><dd>Percentis das durações das chamadas: “95% das chamadas levaram até X”. Descrevem a distribuição; não são intervalos de confiança.</dd>
-      <dt>IC exploratório (bootstrap em blocos)</dt><dd>Intervalo de 95% do p95 e do p99 agregados, por bootstrap de dois níveis: reamostra as repetições e, dentro delas, blocos de chamadas consecutivas. Método fixado antes dos dados; exploratório até o protocolo oficial.</dd>
-      <dt>IC-t das repetições</dt><dd>Média dos p95 das repetições ± t·dp/√R (t = 2,776 para 5 repetições, 4,303 para 3, 2,262 para 10).</dd>
-      <dt>n efetivo</dt><dd>Quantas chamadas independentes uma repetição vale, dada a autocorrelação: n·(1−ρ)/(1+ρ).</dd>
-      <dt>Autocorrelação (lag 1)</dt><dd>Correlação entre a duração de uma chamada e a da seguinte; alta = chamadas lentas vêm em grupos.</dd>
-      <dt>Custo fixo / por registro</dt><dd>t(B) = a + b·B ajustado com as medianas de B = 1 e B = 1024: <i>a</i> é o custo de qualquer chamada, <i>b</i> o de cada registro a mais.</dd>
-      <dt>PSS, USS, maxrss, ΔPSS</dt><dd>Memória rateada do processo, memória exclusiva, pico residente, e a memória que o modelo acrescenta (PSS menos o do modelo nulo).</dd>
-      <dt>Modelo nulo</dt><dd>O mesmo processo com um estimador que devolve sempre a mesma classe.</dd>
-      <dt>Seletor</dt><dd>Como as variáveis de entrada foram escolhidas: LowVariance (11 variáveis) ou MutualInformation com as k = 5 ou k = 8 melhores.</dd>
-      <dt>throttled</dt><dd>0x0 = nenhuma limitação por subtensão ou calor desde o boot. O limite térmico do Pi 4 começa em 80 °C.</dd>
+      <dt>Modelos</dt><dd>Árvore de decisão; LDA (análise discriminante linear); QDA (análise discriminante quadrática); GaussianNB (Naive Bayes gaussiano); SVM (máquina de vetores de suporte); GradientBoosting (árvores combinadas por gradient boosting); RandomForest (floresta aleatória, um conjunto de árvores).</dd>
+      <dt>Execução</dt><dd>Uma configuração medida do começo ao fim: 5 repetições (3 nos controles da árvore). Cada repetição é um processo novo, com 1 thread, que descarta 200 chamadas de aquecimento e cronometra 2.000 para cada B (no SVM com B = 1024: 20 e 1.000).</dd>
+      <dt>Controles da árvore</dt><dd>A árvore de decisão com LowVariance medida no início e no fim da bateria, para estimar quanto o aquecimento e o tempo decorrido mudam os tempos.</dd>
+      <dt>Latência em processo</dt><dd>O tempo do <code>predict</code> dentro do programa, sem rede, HTTP nem JSON.</dd>
+      <dt>IC bootstrap em blocos</dt><dd>Intervalo de 95% do p95 e do p99 das chamadas juntas, por bootstrap em dois níveis: sorteia repetições e, dentro delas, blocos de chamadas seguidas, porque chamadas vizinhas se parecem. Método fixado antes de ver os dados; exploratório até o protocolo oficial.</dd>
+      <dt>IC-t das repetições</dt><dd>Média dos p95 das repetições ± t·dp/√R, com t = 2,776 para 5 repetições, 4,303 para 3 e 2,262 para 10.</dd>
+      <dt>Autocorrelação (lag 1)</dt><dd>Correlação entre a duração de uma chamada e a da seguinte.</dd>
+      <dt>n efetivo</dt><dd>Quantas chamadas independentes uma repetição vale, dada a autocorrelação ρ: n·(1−ρ)/(1+ρ).</dd>
+      <dt>Custo fixo e por registro</dt><dd>Reta t(B) = a + b·B pelas medianas de B = 1 e B = 1024: <i>a</i> é o custo de qualquer chamada, <i>b</i> o de cada registro a mais.</dd>
+      <dt>PSS, USS, maxrss</dt><dd>PSS: memória do processo, com as páginas compartilhadas divididas entre os processos que as usam. USS: só a memória exclusiva do processo. maxrss: pico de memória residente.</dd>
+      <dt>Modelo nulo e ΔPSS</dt><dd>O mesmo programa com um estimador que devolve sempre a mesma classe. ΔPSS é o PSS com o modelo menos o PSS com o modelo nulo.</dd>
+      <dt>throttled</dt><dd>Registro do Pi de redução de frequência por falta de tensão ou por calor desde que foi ligado; 0x0 = nenhuma.</dd>
     </dl>
   </details>
 </div>
@@ -271,11 +284,11 @@
       const ax = svg.append('g').attr('transform', 'translate(0,' + base + ')')
         .call(d3.axisBottom(xs).ticks(Math.max(2, Math.floor(pw / 64))).tickFormat(p.fmt || ((v) => LP.f(v, p.dec == null ? 1 : p.dec))).tickSize(-(base - topo)).tickSizeOuter(0));
       ax.select('.domain').remove(); ax.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)'); LP.eixoTexto(ax);
-      svg.append('text').attr('class', 'lp-forte').attr('x', x0 + 6).attr('y', 12).text(p.titulo);
+      svg.append('text').attr('class', 'lp-forte').attr('x', x0 + 6).attr('y', 12).text(estreito && p.tituloCurto || p.titulo);
       (p.refs || []).forEach((rf) => {
         const xr = xs(rf.v), cor = rf.cor || 'var(--cds-chart-reference)';
         svg.append('line').attr('x1', xr).attr('x2', xr).attr('y1', topo - 4).attr('y2', base).style('stroke', cor).style('stroke-width', 1.5).style('stroke-dasharray', '5 3');
-        const t = svg.append('text').attr('y', topo - 8).style('fill', cor).text(rf.rot);
+        const t = svg.append('text').attr('y', topo - 8).style('fill', cor).text(estreito && rf.rotCurto || rf.rot);
         const tw = t.node().getComputedTextLength();
         if (xr + 4 + tw <= x1) t.attr('x', xr + 4); else t.attr('x', xr - 4).attr('text-anchor', 'end');
       });
@@ -409,9 +422,9 @@ dash.draw('latencia', (el) => {
     aria: 'p50, p95 e p99 da latência em processo com B = 1 por configuração, com o limite de 10 ms e a folga até ele.',
     rows: C.data,
     panels: [{
-      titulo: 'Latência em processo (ms) · B = 1',
+      titulo: 'Tempo por chamada (ms) · B = 1, um pacote por vez', tituloCurto: 'Tempo por chamada (ms)',
       dom: [0, d3.max(C.data, (c) => c.b1.ic99[1]) * 1.03], dec: 0,
-      refs: [{ v: LP.LIMITE_MS, rot: '10 ms: limite via HTTP', cor: 'var(--cds-chart-status-critical)' }],
+      refs: [{ v: LP.LIMITE_MS, rot: '10 ms: limite do projeto, com a rede', rotCurto: 'limite: 10 ms', cor: 'var(--cds-chart-status-critical)' }],
       marca: (svg, c, xs, y, tip) => {
         const b = c.b1, cor = LP.cor(c.sel);
         LP.seg(svg, xs(b.ic99[0]), xs(b.ic99[1]), y, cor, 1.5, 0.5);
@@ -426,7 +439,7 @@ dash.draw('latencia', (el) => {
           b.n + ' repetições × ' + LP.f(b.nCham, 0) + ' chamadas']);
       }
     }],
-    valorTit: 'folga (ms)',
+    valorTit: 'sobra (ms)',
     valor: (c) => c.folga > 0 ? { txt: '+' + LP.f(c.folga, 1) } : { txt: 'excede', cor: 'var(--cds-chart-status-critical)' }
   });
 });
@@ -465,7 +478,7 @@ dash.draw('custo', (el) => {
   el.replaceChildren();
   const t = d3.select(el).append('table').attr('class', 'lp-tabela');
   t.append('thead').append('tr').selectAll('th')
-    .data(['Configuração', 'Custo fixo por chamada, a (ms)', 'Custo por registro, b (µs)', 'Chamada com B = 1024, p50 (ms)', 'Registros por segundo em lote'])
+    .data(['Configuração', 'Custo fixo de cada chamada, a (ms)', 'Custo de cada pacote a mais, b (µs)', 'Tempo de um lote de 1.024 pacotes, p50 (ms)', 'Pacotes por segundo em lote'])
     .join('th').attr('scope', 'col').text((d) => d);
   const tr = t.append('tbody').selectAll('tr').data(C.data).join('tr').classed('lp-sep', (c, i) => i && c.fam !== C.data[i - 1].fam);
   const rot = tr.append('td');
@@ -490,7 +503,7 @@ dash.draw('seletor', (el) => {
   el.replaceChildren();
   const t = d3.select(el).append('table').attr('class', 'lp-tabela');
   t.append('thead').append('tr').selectAll('th')
-    .data(['Configuração', 'p95 · B = 1 (ms)', 'vs. LowVariance', 'p50 · B = 1024 (ms)', 'vs. LowVariance', 'ΔPSS (MiB)', 'vs. LowVariance (MiB)'])
+    .data(['Configuração', 'p95 com B = 1 (ms)', 'Diferença para LowVariance', 'p50 com B = 1024 (ms)', 'Diferença para LowVariance', 'Memória acrescentada, ΔPSS (MiB)', 'Diferença para LowVariance (MiB)'])
     .join('th').attr('scope', 'col').text((d) => d);
   const tr = t.append('tbody').selectAll('tr').data(linhas).join('tr').classed('lp-sep', (c, i) => i && c.fam !== linhas[i - 1].fam);
   const rot = tr.append('td');
@@ -517,7 +530,7 @@ dash.draw('memoria', (el) => {
     aria: 'ΔPSS de cada repetição por configuração, com a faixa de ±1 MiB que não se distingue de zero, e a fração da RAM.',
     rows: C.data,
     panels: [{
-      titulo: 'ΔPSS (MiB)', dom: [-1.5, d3.max(C.data, (c) => d3.max(c.dpss, (d) => d.v)) + 0.5], dec: 0,
+      titulo: 'Memória acrescentada, ΔPSS (MiB)', tituloCurto: 'ΔPSS (MiB)', dom: [-1.5, d3.max(C.data, (c) => d3.max(c.dpss, (d) => d.v)) + 0.5], dec: 0,
       faixa: { de: -1, ate: 1, rot: '±1 MiB: indistinguível de zero' },
       marca: (svg, c, xs, y, tip) => {
         const cor = LP.cor(c.sel);

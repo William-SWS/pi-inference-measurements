@@ -38,5 +38,13 @@ window.ETAPAS = [
     status: 'Exploratória',
     titulo: 'Bateria de referência: 7 modelos em 11 configurações',
     resumo: 'Latência em processo e memória de 7 modelos (11 configurações com os seletores) na condição de referência: desktop desligado e governor performance.'
+  },
+  {
+    id: '2026-11-13-sla-http',
+    data: '2026-11-13',
+    tipo: 'medicao',
+    status: 'Exploratória',
+    titulo: 'SLA via HTTP: o serviço responde em até 10 ms?',
+    resumo: 'Latência do serviço de inferência chamado por HTTP no próprio Pi (loopback), com 7 modelos em 5 rodadas: veredito do p95 ≤ 10 ms, custo do HTTP e do JSON e deriva com a temperatura.'
   }
 ];
