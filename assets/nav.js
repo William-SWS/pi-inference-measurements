@@ -21,7 +21,7 @@
 
   // Barra do topo
   document.querySelectorAll('#site-nav').forEach((nav) => {
-    const a = el('a', 'site-marca', 'Medições no Raspberry Pi');
+    const a = el('a', 'site-marca', 'Medições no rasp');
     a.href = raiz || './';
     const sel = el('select', 'site-ir');
     sel.setAttribute('aria-label', 'Ir para a etapa');
@@ -34,7 +34,9 @@
     });
     sel.addEventListener('change', () => { location.href = sel.value; });
     const pos = el('span', 'site-pos', idx >= 0 ? 'Etapa ' + (idx + 1) + ' de ' + etapas.length : etapas.length + ' etapas');
-    nav.replaceChildren(a, pos, sel);
+    const painel = el('a', 'site-painel', 'Painel do projeto');
+    painel.href = raiz + 'painel/';
+    nav.replaceChildren(a, painel, pos, sel);
   });
 
   // Anterior / próxima

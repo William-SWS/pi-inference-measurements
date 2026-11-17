@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pareto exploratório de três eixos · Medições no rasp</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+</head>
+<body data-raiz="../../" data-etapa="2026-11-14-pareto-exploratorio">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto largo">
+  <p id="etapa-meta"></p>
+  <h1>Pareto exploratório de três eixos: MCC, p95 e ΔPSS</h1>
+  <p>Fronteira de Pareto de <b>três eixos</b> (qualidade, latência e memória) de 7 modelos, montada com as medições que já existem. É um <b>rascunho exploratório</b>: o Pareto final, com a probabilidade de cada modelo pertencer à fronteira e o hipervolume, vem depois da rodada final sem estresse (ticket 24; o ticket 21 depende dele). Nenhum limite de latência entra na leitura: um modelo é dominado só quando outro é melhor ou igual nos três eixos.</p>
+  <p class="discreto">As figuras têm texto em inglês e ficam em <code>figuras/</code>; o texto e as tabelas estão em português. Todas as medições de latência e de memória são exploratórias.</p>
+
+  <h2>Os três eixos</h2>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Eixo</th><th>Direção</th><th>Fonte</th><th>Incerteza mostrada</th></tr></thead>
+    <tbody>
+      <tr><td>Qualidade: MCC (coeficiente de correlação de Matthews) no conjunto de teste</td><td>maximizar</td><td>run <code>paper_protocol</code>, conjunto de teste</td><td>IC 95% por bootstrap de fluxos inteiros</td></tr>
+      <tr><td>Latência: p95 com 1 linha por chamada</td><td>minimizar</td><td>via HTTP em loopback (13/11) ou em processo (12/11)</td><td>IC exploratório (no p95, a união do bootstrap com o IC-t das repetições)</td></tr>
+      <tr><td>Memória: ΔPSS contra o modelo nulo</td><td>minimizar</td><td>bateria de 12/11</td><td>mínimo e máximo entre as repetições (n = 5; a árvore, 6)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><b>Duas versões da latência</b>: via HTTP em loopback (7 modelos) e em processo (a latência do protocolo, que serve de conferência). A fronteira sai igual nas duas: o HTTP soma cerca de 2,55 ms em todos os modelos, o que desloca os pontos mas não muda a ordem.</li>
+    <li><b>Só os 7 modelos com seletor LowVariance.</b> As 4 configurações com MutualInformation (GradientBoosting e RandomForest com 5 e com 8 variáveis) ficam de fora: só têm MCC na validação, não no teste.</li>
+  </ul>
+
+  <h2>Como a fronteira é lida</h2>
+  <ul>
+    <li><b>Pontual (losango laranja):</b> dominância estrita nas estimativas pontuais. A domina B se A não é pior em nenhum eixo e é melhor em algum.</li>
+    <li><b>Possível e certa:</b> dominância de intervalos. <i>Possível</i>: nem o pior caso de nenhum modelo domina o melhor caso dele. <i>Certa</i>: nem o melhor caso de nenhum modelo domina o pior caso dele. Não são probabilidades.</li>
+    <li><b>Empate prático (ε):</b> diferença menor que a margem (MCC ± 0,005; latência: o maior entre 5% e 5 µs; ΔPSS: o maior entre 5% e 64 KiB) conta como empate.</li>
+  </ul>
+
+  <h2>Resultado (igual nas duas versões de latência)</h2>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Modelo</th><th>Pontual</th><th>Empate prático (ε)</th><th>Possível</th><th>Certa</th><th>Dominado por</th></tr></thead>
+    <tbody>
+      <tr><td>DecisionTree</td><td>sim</td><td>sim</td><td>sim</td><td>sim</td><td></td></tr>
+      <tr><td>LDA</td><td>sim</td><td>sim</td><td>sim</td><td>sim</td><td></td></tr>
+      <tr><td>GradientBoosting</td><td>sim</td><td>não</td><td>sim</td><td>não</td><td></td></tr>
+      <tr><td>SVM</td><td>sim</td><td>não</td><td>sim</td><td>não</td><td></td></tr>
+      <tr><td>GaussianNB</td><td>não</td><td>não</td><td>sim</td><td>não</td><td>LDA</td></tr>
+      <tr><td>QDA</td><td>não</td><td>não</td><td>sim</td><td>não</td><td>LDA</td></tr>
+      <tr><td>RandomForest</td><td>não</td><td>não</td><td>sim</td><td>não</td><td>GradientBoosting</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ul>
+    <li><b>DecisionTree e LDA</b> são a fronteira em todas as leituras: a árvore tem a menor latência e o MCC alto; o LDA tem a menor memória (ΔPSS ≈ 0).</li>
+    <li><b>GradientBoosting e SVM</b> estão na fronteira só nas estimativas pontuais. O GradientBoosting tem MCC 0,0019 acima da árvore (dentro do IC e da margem) e gasta 5,17 MiB contra 1,26 MiB, então a árvore o ε-domina. O SVM tem MCC 0,0014 acima do LDA, também dentro da margem.</li>
+    <li><b>GaussianNB e QDA</b> são dominados pelo LDA: o LDA é melhor em latência e memória, e o MCC deles é igual ou menor.</li>
+    <li><b>RandomForest</b> é dominado pelo GradientBoosting em MCC (0,9586 contra 0,9588), latência e memória.</li>
+    <li><b>Todos são "possíveis"</b>, porque os IC do MCC são muito largos (de 0,72 a 0,90 nos modelos fracos): com n efetivo de Kish de 6,6 fluxos no teste, o MCC não separa os modelos da mesma família.</li>
+  </ul>
+
+  <h2>Figuras</h2>
+  <figure class="fig"><img src="../../figuras/9-pareto-exploratorio-mcc-p95-dpss-http-loopback.png" alt="Pareto exploratório de três eixos com a latência via HTTP em loopback" loading="lazy">
+    <figcaption>Pareto exploratório com o p95 via HTTP em loopback, em três projeções: (a) MCC × p95, (b) MCC × ΔPSS e (c) ΔPSS × p95. A fronteira (losango laranja) é a dos três eixos juntos, por isso a mesma nas três projeções; círculos azuis são dominados. As barras cinza são o IC 95% (MCC e p95) e o mínimo e o máximo entre repetições (ΔPSS). A tabela abaixo dos gráficos traz os valores exatos. Eixo de latência em escala logarítmica; sem linha ligando a fronteira.</figcaption></figure>
+  <figure class="fig"><img src="../../figuras/9-pareto-exploratorio-mcc-p95-dpss-em-processo.png" alt="Pareto exploratório de três eixos com a latência em processo" loading="lazy">
+    <figcaption>O mesmo Pareto com o p95 em processo. A fronteira é idêntica. O p95 em processo da DecisionTree é a média de duas medições de controle (início e fim da bateria de 12/11).</figcaption></figure>
+
+  <h2>Limites</h2>
+  <ul>
+    <li><b>Exploratório.</b> Não é o Pareto do artigo: não há probabilidade de pertencer à fronteira por reamostragem conjunta, hipervolume nem tabela de empates por reamostragem.</li>
+    <li><b>Três fontes de dias diferentes:</b> MCC do run <code>paper_protocol</code> (teste), latência via HTTP de 13/11 e ΔPSS com latência em processo de 12/11. Boot, núcleos fixados e temperatura não são os mesmos.</li>
+    <li><b>MCC no teste:</b> o protocolo escolhe na validação e o teste só confirma; aqui o teste entra como eixo de qualidade. O n efetivo de Kish do teste é 6,6 fluxos: os IC são largos, e as diferenças entre DecisionTree, GradientBoosting e RandomForest (até 0,0019) estão dentro deles.</li>
+    <li><b>ΔPSS:</b> o −0,02 MiB do LDA é ruído (a variação do modelo nulo é maior); leia como zero. O SVM usa o processo só com 1 linha por chamada; os outros foram medidos num processo que também rodou com 1.024 linhas por chamada.</li>
+    <li><b>Fronteira sem linha:</b> em três eixos ela não é uma curva em nenhuma projeção, então a linha foi omitida para não sugerir uma ordem que não existe.</li>
+    <li>Um rasp, sem ventoinha, e pseudorreplicação das repetições (mesmo boot e mesmo ambiente).</li>
+  </ul>
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+</body>
+</html>

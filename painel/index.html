@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel do projeto · Medições no rasp</title>
+<link rel="stylesheet" href="../assets/estilo.css">
+</head>
+<body data-raiz="../" data-etapa="">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto largo">
+  <h1>Painel de estado do projeto</h1>
+  <p>Situação em <b>16/11/2026</b> do projeto de detecção de ataques de negação de serviço (DoS) em tráfego MQTT num dispositivo de borda, o rasp (Raspberry Pi 4). Esta página resume tickets, decisões e pendências; os detalhes de cada medição estão nas etapas da <a href="../">linha do tempo</a>.</p>
+  <p class="discreto">Todas as medições de latência e de memória feitas até agora são <b>exploratórias</b>. O que foi validado é o <b>método de medição</b>; a rodada final de 16/11 foi medida com ele, e os números dela seguem exploratórios até o Pareto final.</p>
+
+  <h2>Próximo passo</h2>
+  <div class="painel-grade">
+    <div class="painel-cartao">
+      <span class="rot">PRÓXIMO PASSO</span>
+      <b>Ticket 21: Pareto final</b>
+      <p>Cruzar MCC, p95 e ΔPSS com os dados da rodada final, com as definições da decisão 186, que a autora ainda vai confirmar. O rascunho, de 7 modelos, está na <a href="../etapas/2026-11-14-pareto-exploratorio/">etapa de 14/11</a>.</p>
+    </div>
+    <div class="painel-cartao">
+      <span class="rot">DEPOIS DO 21</span>
+      <b>Ticket 20: estresse</b>
+      <p>Gerador de carga, matriz de estresse e capacidade: a latência e a memória com CPU, memória e rede disputadas.</p>
+    </div>
+    <div class="painel-cartao">
+      <span class="rot">O QUE JÁ ESTÁ PRONTO</span>
+      <b>Rodada final sem estresse</b>
+      <p>136 células, 14 de 14 meias-larguras do p95 dentro de 1,0%. Resultados na <a href="../etapas/2026-11-16-rodada-final-sem-estresse/">etapa de 16/11</a>, com a explicação dos conceitos em <a href="../etapas/2026-11-16-rodada-final-sem-estresse/#como-ler">Como ler estes números</a>. O método está na <a href="../etapas/2026-11-15-validacao-do-metodo-de-medicao/">etapa de 15/11</a>.</p>
+    </div>
+  </div>
+
+  <h2>Tickets</h2>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Ticket</th><th>O que é</th><th>Estado</th><th>Depende de</th><th>Observação</th></tr></thead>
+    <tbody>
+      <tr><td>19</td><td>Validação do método de medição no rasp (seis experimentos)</td><td><span class="estado estado-feito">feito</span></td><td>—</td><td>Resultados exploratórios do método; ver a etapa de 15/11.</td></tr>
+      <tr><td>24</td><td>Rodada final sem estresse: latência (em processo e via HTTP em loopback) e memória, R = 6</td><td><span class="estado estado-feito">feito</span></td><td>19</td><td>136 células, 14 de 14 dentro de 1,0%; a Random Forest em processo com 10 processos (decisão 189). Só as configurações com MCC no teste (7 de 11).</td></tr>
+      <tr><td>21</td><td>Análise final: Pareto robusto, capacidade e tabelas</td><td><span class="estado estado-livre">livre</span></td><td>24 (feito)</td><td>A capacidade passa a ser a maior taxa de chegada com fila estável (decisão 186).</td></tr>
+      <tr><td>20</td><td>Gerador de carga, matriz de estresse e capacidade</td><td><span class="estado estado-depois">depois</span></td><td>19</td><td>Deixou de bloquear o Pareto (decisão 187).</td></tr>
+      <tr><td>22</td><td>Custo de extração das features no rasp</td><td><span class="estado estado-livre">livre</span></td><td>—</td><td>Independente dos demais. A paridade da extração com o MQTT_UAD continua bloqueada pelo pcap original.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Decisões 182 a 189</h2>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Decisão</th><th>Data</th><th>Resumo</th></tr></thead>
+    <tbody>
+      <tr><td>182</td><td>15/11</td><td>Critérios de decisão dos cinco experimentos de validação e limite de 1,0% para a meia-largura do IC da latência, fixados antes de qualquer dado.</td></tr>
+      <tr><td>183</td><td>15/11</td><td>Ticket 19 implementado pelo agente (código, testes e roteiros); nada tinha rodado no rasp.</td></tr>
+      <tr><td>184</td><td>15/11</td><td>A autora aprovou a 182, com um acréscimo: a repetição necessária para o IC também é medida na Random Forest. A temperatura inicial não invalida as células. A regra de alerta desta decisão foi substituída pela 185.</td></tr>
+      <tr><td>185</td><td>15/11</td><td>O limite de latência vira só medida de referência interna; a rede real fica fora do estudo; o foco passa a ser o intervalo de confiança da latência.</td></tr>
+      <tr><td>186</td><td>15/11</td><td>O limite de latência foi retirado do projeto. Nenhuma figura, tabela ou texto o cita e nenhum modelo é rotulado como "atende" ou "não atende".</td></tr>
+      <tr><td>187</td><td>15/11</td><td>R = 6 processos de 10.000 chamadas e bloco 29; renomeio completo para nomes descritivos; rodada final sem estresse (ticket 24); o ticket 21 passa a depender do 24 e o 20 fica para depois.</td></tr>
+      <tr><td>188</td><td>15/11</td><td>Ticket 24 implementado: latência medida sem o medidor de memória, em células separadas; R = 6 e bloco 29 também no HTTP; só os 7 modelos LowVariance; via HTTP só o <code>/predict</code> binário; memória com 2.000 chamadas e o modelo nulo também com 6 processos.</td></tr>
+      <tr><td>189</td><td>16/11</td><td>Random Forest em processo com R = 10 (meia-largura de 1,14% para 0,92%). A decisão veio depois de ver o dado, como a regra previa; a rodada fecha com todas as meias-larguras dentro de 1,0%.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Pendências abertas</h2>
+  <ul>
+    <li><b>Condição de referência (decisão 159) sem confirmação.</b> Desktop desligado, governor <code>performance</code> e interrupções de rede no núcleo 0: a autora ainda não confirmou que essa é a condição de referência do artigo.</li>
+    <li><b>ΔPSS do SVM menor que o da árvore.</b> O SVM acrescenta menos memória que a árvore de decisão (0,46 contra 0,95 MiB na rodada final), o que não era esperado; a causa não foi investigada.</li>
+    <li><b>MCC no teste dos 4 modelos com MutualInformation.</b> Só 7 dos 11 modelos têm MCC no teste; os 4 com MutualInformation (GradientBoosting e RandomForest com 5 e com 8 variáveis) ficam fora do Pareto até ganharem esse número.</li>
+  </ul>
+
+  <h2>Ressalvas que valem para todos os números</h2>
+  <ul>
+    <li>Um único rasp, sem ventoinha, ligado uma vez; as repetições compartilham o mesmo boot e ambiente.</li>
+    <li>Deriva térmica de 1% a 3%: diferenças menores que cerca de 3% entre modelos não são interpretáveis.</li>
+    <li>Os ICs ainda não foram calibrados para 2.000 chamadas por repetição; a calibração (R = 6, bloco 29) foi em processo, com 10.000 chamadas, no regime isolado.</li>
+    <li>A latência via HTTP é em loopback, no próprio rasp, sem rede real.</li>
+  </ul>
+
+  <h2>Figuras e onde estão</h2>
+  <p>Doze figuras (PNG, 300 dpi, texto em inglês, sem título interno), geradas a partir dos CSVs por <code>figuras/gerar_figuras.py</code>.</p>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Figura</th><th>Arquivo</th><th>Aparece em</th></tr></thead>
+    <tbody>
+      <tr><td>Mesmo processo × processo novo</td><td><a href="../figuras/1-mesmo-processo-vs-processo-novo.png">1-mesmo-processo-vs-processo-novo.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>Custo do medidor de memória</td><td><a href="../figuras/2-custo-do-medidor-de-memoria.png">2-custo-do-medidor-de-memoria.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>Pico amostrado × contador do sistema</td><td><a href="../figuras/3-pico-amostrado-vs-contador.png">3-pico-amostrado-vs-contador.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>Leituras do contador de pico</td><td><a href="../figuras/4-leituras-do-contador-de-pico.png">4-leituras-do-contador-de-pico.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>SVM com 1 × 4 threads</td><td><a href="../figuras/5-svm-1-vs-4-threads.png">5-svm-1-vs-4-threads.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>Repetições necessárias para o IC (R = 6 destacado)</td><td><a href="../figuras/6-repeticoes-necessarias-para-o-ic.png">6-repeticoes-necessarias-para-o-ic.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>p95 por processo, árvore e Random Forest</td><td><a href="../figuras/7-p95-por-processo.png">7-p95-por-processo.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>Latência p95 por modelo, em processo e via HTTP em loopback</td><td><a href="../figuras/8-latencia-p95-em-processo-vs-http-loopback.png">8-latencia-p95-em-processo-vs-http-loopback.png</a></td><td>só como arquivo (o dashboard de 13/11 tem a versão interativa)</td></tr>
+      <tr><td>Pareto exploratório de três eixos (via HTTP em loopback e em processo)</td><td><a href="../figuras/9-pareto-exploratorio-mcc-p95-dpss-http-loopback.png">9-…-http-loopback.png</a> · <a href="../figuras/9-pareto-exploratorio-mcc-p95-dpss-em-processo.png">9-…-em-processo.png</a></td><td>etapa de 14/11</td></tr>
+      <tr><td>Temperatura por execução</td><td><a href="../figuras/10-temperatura-por-execucao.png">10-temperatura-por-execucao.png</a></td><td>etapa de 15/11</td></tr>
+      <tr><td>p95 com IC por modelo, rodada final (em processo e via HTTP em loopback)</td><td><a href="../figuras/11-latencia-p95-com-ic-rodada-final.png">11-latencia-p95-com-ic-rodada-final.png</a></td><td>etapa de 16/11</td></tr>
+      <tr><td>Memória acima do modelo nulo (ΔPSS), rodada final</td><td><a href="../figuras/12-memoria-acima-do-modelo-nulo-rodada-final.png">12-memoria-acima-do-modelo-nulo-rodada-final.png</a></td><td>etapa de 16/11</td></tr>
+    </tbody>
+  </table>
+  </div>
+</main>
+</div>
+<script src="../assets/etapas.js"></script>
+<script src="../assets/nav.js"></script>
+</body>
+</html>

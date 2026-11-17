@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lote1 e lote2 · Medições no Raspberry Pi</title>
+<title>Lote1 e lote2 · Medições no rasp</title>
 <link rel="stylesheet" href="../../assets/estilo.css">
 <script src="../../assets/d3.min.js"></script>
 <script src="../../assets/dash-shim.js"></script>
@@ -18,10 +18,10 @@
   <header id="topo" class="lp-topo">
    <div class="lp-topo-texto">
     <p class="lp-kicker">Árvore de decisão · LowVariance (11 variáveis) · Raspberry Pi 4 Model B, 4 GB, sem ventoinha · medições exploratórias</p>
-    <h1 class="lp-titulo">Latência em processo e memória da inferência no Pi</h1>
+    <h1 class="lp-titulo">Latência em processo e memória da inferência no rasp</h1>
     <div class="lp-resumo-painel">
     <p class="lp-rot">Resumo</p>
-    <p class="lp-lede" id="resumo">Com B = 1, a mediana de cada execução fica entre <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_min_ms" data-row="0">—</b> e <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_max_ms" data-row="0">—</b> ms (diferença de <b class="lp-num" data-draw="num" data-source="frase" data-field="dif_entre_execucoes_pct" data-row="0" data-dec="1">—</b>%), enquanto as repetições de uma mesma execução chegam a variar <b class="lp-num" data-draw="num" data-source="frase" data-field="maior_variacao_entre_repeticoes_pct" data-row="0" data-dec="1">—</b>%. O que muda entre as condições é a cauda: em média, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_ligado_pct" data-row="0">—</b>% de chamadas lentas com o desktop ligado, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_desligado_pct" data-row="0">—</b>% com ele desligado e <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_registrador_pct" data-row="0">—</b>% com o registrador ao lado.</p>
+    <p class="lp-lede" id="resumo">Com 1 linha por chamada, a mediana de cada execução fica entre <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_min_ms" data-row="0">—</b> e <b class="lp-num" data-draw="num" data-source="frase" data-field="p50_max_ms" data-row="0">—</b> ms (diferença de <b class="lp-num" data-draw="num" data-source="frase" data-field="dif_entre_execucoes_pct" data-row="0" data-dec="1">—</b>%), enquanto as repetições de uma mesma execução chegam a variar <b class="lp-num" data-draw="num" data-source="frase" data-field="maior_variacao_entre_repeticoes_pct" data-row="0" data-dec="1">—</b>%. O que muda entre as condições é a cauda: em média, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_ligado_pct" data-row="0">—</b>% de chamadas lentas com o desktop ligado, <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_desligado_pct" data-row="0">—</b>% com ele desligado e <b class="lp-num" data-draw="num" data-source="frase" data-field="lentas_registrador_pct" data-row="0">—</b>% com o registrador ao lado.</p>
     </div>
    </div>
    <section class="lp-dispositivo" id="dispositivo" aria-labelledby="dispositivo-rot">
@@ -41,19 +41,19 @@
     <p class="lp-foco-rot">Foco: desktop desligado · governor performance (frequência fixa em 1,8 GHz) · as duas execuções do lote2 · mediana das <span class="lp-num" data-draw="num" data-source="foco" data-field="repeticoes" data-row="0" data-dec="0">—</span> repetições</p>
     <div class="lp-tiles">
       <div class="lp-card" id="tile-p50">
-        <span class="lp-card-rot">Latência em processo, mediana (p50) · B = 1</span>
+        <span class="lp-card-rot">Latência em processo, mediana (p50) · 1 linha por chamada</span>
         <span class="lp-card-val"><span data-draw="num" data-source="foco" data-field="p50_ms" data-row="0">—</span><span class="lp-card-un">ms</span></span>
         <span class="lp-card-sub">Entre repetições: <span class="lp-num" data-draw="num" data-source="foco" data-field="p50_min_ms" data-row="0">—</span> a <span class="lp-num" data-draw="num" data-source="foco" data-field="p50_max_ms" data-row="0">—</span> ms</span>
       </div>
       <div class="lp-card" id="tile-p95">
-        <span class="lp-card-rot">Latência em processo, p95 · B = 1</span>
+        <span class="lp-card-rot">Latência em processo, p95 · 1 linha por chamada</span>
         <span class="lp-card-val"><span data-draw="num" data-source="foco" data-field="p95_ms" data-row="0">—</span><span class="lp-card-un">ms</span></span>
         <span class="lp-card-sub">Entre repetições: <span class="lp-num" data-draw="num" data-source="foco" data-field="p95_min_ms" data-row="0">—</span> a <span class="lp-num" data-draw="num" data-source="foco" data-field="p95_max_ms" data-row="0">—</span> ms</span>
       </div>
       <div class="lp-card" id="tile-registro">
-        <span class="lp-card-rot">Tempo por registro · B = 1024</span>
+        <span class="lp-card-rot">Tempo por registro · 1.024 linhas por chamada</span>
         <span class="lp-card-val"><span data-draw="num" data-source="foco" data-field="por_registro_b1024_us" data-row="0">—</span><span class="lp-card-un">µs</span></span>
-        <span class="lp-card-sub">A chamada leva <span class="lp-num" data-draw="num" data-source="foco" data-field="p50_b1024_ms" data-row="0">—</span> ms (mediana): cerca de <span class="lp-num" data-draw="num" data-source="foco" data-field="razao_por_registro" data-row="0" data-dec="0">—</span> vezes menos tempo por registro que com B = 1</span>
+        <span class="lp-card-sub">A chamada leva <span class="lp-num" data-draw="num" data-source="foco" data-field="p50_b1024_ms" data-row="0">—</span> ms (mediana): cerca de <span class="lp-num" data-draw="num" data-source="foco" data-field="razao_por_registro" data-row="0" data-dec="0">—</span> vezes menos tempo por registro que com 1 linha por chamada</span>
       </div>
       <div class="lp-card" id="tile-memoria">
         <span class="lp-card-rot">Memória acrescentada pelo modelo (ΔPSS)</span>
@@ -61,7 +61,7 @@
         <span class="lp-card-sub">Entre repetições: <span class="lp-num" data-draw="num" data-source="foco" data-field="dpss_min_mib" data-row="0" data-dec="3">—</span> a <span class="lp-num" data-draw="num" data-source="foco" data-field="dpss_max_mib" data-row="0" data-dec="3">—</span> MiB</span>
       </div>
       <div class="lp-card" id="tile-cpu">
-        <span class="lp-card-rot">Tempo de CPU ÷ duração da chamada · B = 1</span>
+        <span class="lp-card-rot">Tempo de CPU ÷ duração da chamada · 1 linha por chamada</span>
         <span class="lp-card-val"><span data-draw="num" data-source="foco" data-field="cpu_pct_min" data-row="0" data-dec="1">—</span><span class="lp-card-un">a</span> <span data-draw="num" data-source="foco" data-field="cpu_pct_max" data-row="0" data-dec="1">—</span><span class="lp-card-un">%</span></span>
         <span class="lp-card-sub">Em todas as repetições do lote2: o tempo da chamada é de computação, não de espera</span>
       </div>
@@ -71,12 +71,12 @@
   <aside class="lp-ressalvas" id="ressalvas">
     <h2>Ressalvas</h2>
     <ul>
-      <li>Dados exploratórios, de um modelo só (árvore LowVariance) e de um Pi sem ventoinha. Não generalizar para outros modelos; nenhum número aqui é resultado final.</li>
-      <li>Latência em processo: só o <code>predict</code>, sem rede, HTTP, JSON nem extração de variáveis. Não comparar com um limite de latência de ponta a ponta.</li>
+      <li>Dados exploratórios, de um modelo só (árvore LowVariance) e de um rasp sem ventoinha. Não generalizar para outros modelos; nenhum número aqui é resultado final.</li>
+      <li>Latência em processo: só o <code>predict</code>, sem rede, HTTP, JSON nem extração de variáveis. Não é a latência de ponta a ponta.</li>
       <li>A ordem das execuções não foi sorteada, e no lote2 a temperatura subiu ao longo da bateria: ordem e temperatura estão misturadas.</li>
-      <li>A execução com kernel antes do reinício (c0) tem só 3 repetições, e c1 e c2 foram medidas com o registrador ao lado. Elas não são comparáveis com as demais sem essa nota.</li>
+      <li>A execução com kernel antes do reinício tem só 3 repetições, e as duas execuções com registrador ao lado (ondemand e performance) foram medidas assim. Elas não são comparáveis com as demais sem essa nota.</li>
       <li>5 repetições por execução: sem afirmações de significância estatística. Nos gráficos, cada ponto é uma repetição.</li>
-      <li>Memória: o lote1 só tem a 1ª repetição de cada execução; o lote2 tem todas. Os limites de chamada lenta foram escolhidos por inspeção dos dados (o de B = 1024 é aproximado).</li>
+      <li>Memória: o lote1 só tem a 1ª repetição de cada execução; o lote2 tem todas. Os limites de chamada lenta foram escolhidos por inspeção dos dados (o de 1.024 linhas por chamada é aproximado).</li>
     </ul>
   </aside>
 
@@ -93,9 +93,9 @@
         <option value="pct_chamadas_lentas">Chamadas lentas (%)</option>
         <option value="autocorrelacao_lag1">Autocorrelação (lag 1)</option>
       </select></label>
-      <label>Tamanho do lote (B) <select class="dash-select" id="sel-b" aria-label="Tamanho do lote (B)">
-        <option value="1">B = 1</option>
-        <option value="1024">B = 1024</option>
+      <label>Linhas por chamada <select class="dash-select" id="sel-b" aria-label="Linhas por chamada">
+        <option value="1">1 linha por chamada</option>
+        <option value="1024">1.024 linhas por chamada</option>
       </select></label>
     </div>
     <ul class="lp-legenda" aria-label="Legenda das condições">
@@ -126,9 +126,9 @@
         <option value="c1">Desligado · ondemand · registrador ao lado</option>
         <option value="c0">Ligado · ondemand · kernel antes do reinício</option>
       </select></label>
-      <label>B <select class="dash-select" id="sel-bs" aria-label="Tamanho do lote (B) da distribuição">
-        <option value="1">B = 1</option>
-        <option value="1024">B = 1024</option>
+      <label>Linhas por chamada <select class="dash-select" id="sel-bs" aria-label="Linhas por chamada da distribuição">
+        <option value="1">1 linha por chamada</option>
+        <option value="1024">1.024 linhas por chamada</option>
       </select></label>
     </div>
     <div class="lp-chart" id="grafico-distribuicao" data-draw="hist"></div>
@@ -136,18 +136,18 @@
 
     <h3 id="periodicidade">Os grupos de chamadas lentas têm periodicidade?</h3>
     <div class="lp-chart lp-baixo" id="grafico-intervalos" data-draw="intervalos" data-source="intervalos"></div>
-    <p class="lp-nota">Cada ponto é o tempo entre o início de um grupo de chamadas lentas e o início do grupo seguinte, na mesma repetição (os dois valores de B juntos). O tempo vem da soma das durações das chamadas, então é aproximado: não conta o que o processo faz entre uma chamada e outra. A linha marca o período do registrador ao lado. Escala logarítmica.</p>
+    <p class="lp-nota">Cada ponto é o tempo entre o início de um grupo de chamadas lentas e o início do grupo seguinte, na mesma repetição (os dois tamanhos de lote juntos). O tempo vem da soma das durações das chamadas, então é aproximado: não conta o que o processo faz entre uma chamada e outra. A linha marca o período do registrador ao lado. Escala logarítmica.</p>
   </section>
 
   <section id="ordem" class="lp-sec">
     <h2>A latência deriva com a ordem e a temperatura? (lote2)</h2>
-    <p class="lp-pergunta">As seis execuções do lote2 na ordem real (A B C C B A). Usa a medida e o B escolhidos acima.</p>
+    <p class="lp-pergunta">As seis execuções do lote2 na ordem real (ordem espelhada: desktop ligado, desligado com ondemand, desligado com performance, e o inverso). Usa a medida e as linhas por chamada escolhidas acima.</p>
     <div class="lp-chart" id="grafico-ordem" data-draw="ordem" data-source="repeticoes_ms mediana_por_execucao execucoes"></div>
     <p class="lp-nota">Acima: cada ponto é uma repetição; a linha liga as medianas. Abaixo: temperatura do chip antes e depois de cada execução. Como a ordem não foi sorteada e a temperatura subiu junto, uma deriva aqui não separa o efeito da ordem do da temperatura.</p>
 
-    <h3 id="ambiente">Como variaram a frequência e a temperatura a cada 1 s? (lote1: c1, c2 e repouso)</h3>
+    <h3 id="ambiente">Como variaram a frequência e a temperatura a cada 1 s? (lote1: execuções com registrador ao lado e repouso)</h3>
     <div class="lp-chart" id="grafico-ambiente" data-draw="ambiente" data-source="ambiente"></div>
-    <p class="lp-nota">Só existe para o lote1, durante c1 (ondemand) e c2 (performance), as duas com o registrador ao lado. O trecho c2 contém a medição (2 a 3 minutos, no começo) e depois cerca de 40 minutos de repouso com performance. Todas as leituras deram throttled = 0x0; o limite de limitação do Pi 4 começa em 80 °C.</p>
+    <p class="lp-nota">Só existe para o lote1, durante as execuções com ondemand e com performance, as duas com o registrador ao lado. O trecho da execução com performance contém a medição (2 a 3 minutos, no começo) e depois cerca de 40 minutos de repouso com performance. Todas as leituras deram throttled = 0x0; o limite de limitação do rasp 4 começa em 80 °C.</p>
   </section>
 
   <section id="memoria" class="lp-sec">
@@ -165,20 +165,20 @@
   <details class="lp-glossario" id="glossario">
     <summary>Termos usados nesta página</summary>
     <dl>
-      <dt>Execução</dt><dd>Um comando do profiler: uma condição, com 5 repetições (3 no c0).</dd>
-      <dt>Repetição</dt><dd>Um processo novo, com as threads fixadas em 1: 200 chamadas de aquecimento descartadas e 2.000 cronometradas por B.</dd>
+      <dt>Execução</dt><dd>Um comando do profiler: uma condição, com 5 repetições (3 na execução com kernel antes do reinício).</dd>
+      <dt>Repetição</dt><dd>Um processo novo, com as threads fixadas em 1: 200 chamadas de aquecimento descartadas e 2.000 cronometradas por tamanho de lote.</dd>
       <dt>Chamada</dt><dd>Uma chamada ao <code>predict</code>; a duração é o tempo de relógio dela.</dd>
-      <dt>B (tamanho do lote)</dt><dd>Registros por chamada. B = 1 é um detector que decide um pacote por vez; B = 1024 é processamento em lote.</dd>
+      <dt>Linhas por chamada (tamanho do lote)</dt><dd>Registros por chamada. 1 linha por chamada é um detector que decide um pacote por vez; 1.024 linhas por chamada é processamento em lote.</dd>
       <dt>Latência em processo</dt><dd>Tempo do <code>predict</code> dentro do processo. Não é a latência do detector nem do sistema.</dd>
       <dt>p50, p95, p99</dt><dd>Percentis das durações das chamadas de uma repetição: “95% das chamadas levaram até X”.</dd>
       <dt>Chamada lenta / cauda</dt><dd>Chamada acima do limite de chamada lenta; a cauda é o conjunto delas.</dd>
       <dt>Autocorrelação (lag 1)</dt><dd>Correlação entre a duração de uma chamada e a da seguinte. Alta = chamadas lentas em grupos.</dd>
       <dt>PSS / USS / maxrss</dt><dd>PSS: memória com páginas compartilhadas divididas entre processos. USS: memória exclusiva. maxrss: pico de memória residente.</dd>
       <dt>Modelo nulo, ΔPSS, ΔUSS</dt><dd>O mesmo processo com um estimador que devolve sempre a mesma classe; Δ = configuração menos modelo nulo, a memória que o modelo acrescenta.</dd>
-      <dt>Desktop ligado/desligado</dt><dd>Serviço <code>lightdm</code> rodando ou parado. O Pi nunca teve monitor, teclado nem mouse; acesso sempre por SSH.</dd>
+      <dt>Desktop ligado/desligado</dt><dd>Serviço <code>lightdm</code> rodando ou parado. O rasp nunca teve monitor, teclado nem mouse; acesso sempre por SSH.</dd>
       <dt>Governor</dt><dd><code>ondemand</code> varia a frequência com a carga; <code>performance</code> fixa a máxima (1,8 GHz).</dd>
-      <dt>Registrador ao lado</dt><dd>Laço que lia temperatura e frequência a cada 1 s durante c1 e c2: um efeito do observador.</dd>
-      <dt>Kernel antes/depois do reinício</dt><dd>“Depois” = controlador de memória do cgroup e PSI ligados (mudança feita entre c0 e c1).</dd>
+      <dt>Registrador ao lado</dt><dd>Laço que lia temperatura e frequência a cada 1 s durante as duas execuções com registrador ao lado: um efeito do observador.</dd>
+      <dt>Kernel antes/depois do reinício</dt><dd>“Depois” = controlador de memória do cgroup e PSI ligados (mudança feita depois da primeira execução).</dd>
       <dt>throttled</dt><dd>Limitação por subtensão ou calor; 0x0 = nenhuma.</dd>
     </dl>
   </details>
@@ -188,6 +188,7 @@
 (function () {
   const L = d3.formatLocale({ decimal: ',', thousands: '.', grouping: [3], currency: ['R$ ', ''] });
   const LP = window.LP = {};
+  LP.lin = (b) => (String(b) === '1024' ? '1.024 linhas por chamada' : '1 linha por chamada');
   LP.f = (v, d) => (v == null || isNaN(+v)) ? '—' : L.format(',.' + (d == null ? 2 : d) + 'f')(+v);
   LP.st = { metrica: 'p50_ms', B: '1', exec: 'off_performance_a', Bs: '1', rep: '0' };
   // Período do laço do registrador ao lado (referência dada pelo autor).
@@ -272,7 +273,7 @@ dash.calc('repeticoes_ms', {
 });
 
 dash.calc('mediana_por_execucao', {
-  title: 'Mediana das repetições por execução e B',
+  title: 'Mediana das repetições por execução e tamanho de lote',
   description: 'Para cada execução e tamanho de lote, a mediana entre repetições de cada medida (tempos em ms).',
   inputs: ['resumo'],
   fn: (resumo) => {
@@ -295,7 +296,7 @@ dash.calc('mediana_por_execucao', {
 
 dash.calc('frase', {
   title: 'Resumo do topo da página',
-  description: 'Faixa das medianas de p50 com B = 1 entre execuções, maior variação entre repetições de uma execução e média de chamadas lentas por grupo de condição.',
+  description: 'Faixa das medianas de p50 com 1 linha por chamada entre execuções, maior variação entre repetições de uma execução e média de chamadas lentas por grupo de condição.',
   inputs: ['resumo', 'execucoes'],
   fn: (resumo, execucoes) => {
     const mediana = (v) => { const s = v.slice().sort((a, b) => a - b), n = s.length; return n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2; };
@@ -404,7 +405,7 @@ dash.draw('cmp', (el) => {
   el.replaceChildren();
   const W = Math.max(280, el.clientWidth), estreito = W < 560;
   const svg = d3.select(el).append('svg').attr('width', W).attr('role', 'img')
-    .attr('aria-label', info.rot + ' por execução, B = ' + B + ': um ponto por repetição e a mediana de cada execução.');
+    .attr('aria-label', info.rot + ' por execução, ' + LP.lin(B) + ': um ponto por repetição e a mediana de cada execução.');
   const linhas = []; let y = 4, gAnt = -1;
   LP.ORDEM.forEach((id) => {
     const g = LP.EXEC[id].g;
@@ -426,7 +427,7 @@ dash.draw('cmp', (el) => {
   eixo.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)');
   LP.eixoTexto(eixo);
   svg.append('text').attr('x', x1).attr('y', y + 40).attr('text-anchor', 'end')
-    .text(info.rot + (info.un ? ' (' + info.un + ')' : '') + ' · B = ' + B + (B === '1024' ? ' (tempo da chamada inteira)' : ''));
+    .text(info.rot + (info.un ? ' (' + info.un + ')' : '') + ' · ' + LP.lin(B) + (B === '1024' ? ' (tempo da chamada inteira)' : ''));
   const tip = LP.tip(el);
   linhas.forEach((l) => {
     if (l.tipo === 'grupo') {
@@ -474,7 +475,7 @@ dash.draw('hist', (el) => {
   ay.select('.domain').remove(); ay.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)');
   LP.eixoTexto(ax); LP.eixoTexto(ay);
   svg.append('text').attr('x', 0).attr('y', 12).text('Número de chamadas (escala log)');
-  svg.append('text').attr('x', (m.l + W - m.r) / 2).attr('y', H - 6).attr('text-anchor', 'middle').text('Latência em processo (ms) · B = ' + B);
+  svg.append('text').attr('x', (m.l + W - m.r) / 2).attr('y', H - 6).attr('text-anchor', 'middle').text('Latência em processo (ms) · ' + LP.lin(B));
   const tip = LP.tip(el);
   svg.selectAll(null).data(bins).join('rect')
     .attr('x', (d) => xs(d.a) + 0.5).attr('width', (d) => Math.max(1, xs(d.b) - xs(d.a) - 1))
@@ -519,7 +520,7 @@ dash.draw('intervalos', (el) => {
       .attr('cx', (r) => xs(Math.max(5, r.intervalo_ms)))
       .attr('cy', (r, i) => yc + (((i * 7919) % 17) / 16 - 0.5) * (estreito ? 10 : 14))
       .attr('r', 3).style('fill', LP.cor(g)).style('fill-opacity', 0.45)
-      .on('mousemove', (ev, r) => tip.show(ev, [LP.f(r.intervalo_ms, 1) + ' ms', LP.EXEC[r.execucao].nome, 'B = ' + r.B + ' · repetição ' + (+r.repeticao + 1) + ' · id: ' + r.execucao]))
+      .on('mousemove', (ev, r) => tip.show(ev, [LP.f(r.intervalo_ms, 1) + ' ms', LP.EXEC[r.execucao].nome, '' + LP.lin(r.B) + ' · repetição ' + (+r.repeticao + 1) + ' · id: ' + r.execucao]))
       .on('mouseleave', () => tip.hide());
   });
 });
@@ -543,7 +544,7 @@ dash.draw('ordem', (el) => {
   const ys = d3.scaleLinear().domain([info.zero ? 0 : dom[0] - pad, dom[1] + pad]).range([H1, 34]).nice(4);
   const ay = svg.append('g').attr('transform', 'translate(' + m.l + ',0)').call(d3.axisLeft(ys).ticks(4).tickFormat((v) => LP.f(v, 2)).tickSize(-(W - m.l - m.r)).tickSizeOuter(0));
   ay.select('.domain').remove(); ay.selectAll('.tick line').style('stroke', 'var(--cds-chart-grid)'); LP.eixoTexto(ay);
-  svg.append('text').attr('x', 0).attr('y', 8).text(info.rot + (info.un ? ' (' + info.un + ')' : '') + ' · B = ' + B);
+  svg.append('text').attr('x', 0).attr('y', 8).text(info.rot + (info.un ? ' (' + info.un + ')' : '') + ' · ' + LP.lin(B));
   const tip = LP.tip(el);
   const cx = (id) => xb(id) + xb.bandwidth() / 2;
   const meds = execs.map((e) => M.data.find((r) => r.execucao === e.execucao && r.B === B)).filter(Boolean);

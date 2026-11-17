@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bateria de modelos · Medições no Raspberry Pi</title>
+<title>Bateria de modelos · Medições no rasp</title>
 <link rel="stylesheet" href="../../assets/estilo.css">
 <script src="../../assets/d3.min.js"></script>
 <script src="../../assets/dash-shim.js"></script>
@@ -17,11 +17,11 @@
   <p id="etapa-meta"></p>
   <header id="topo" class="lp-topo">
    <div class="lp-topo-texto">
-    <p class="lp-kicker">Detecção de ataques DoS em tráfego MQTT · Raspberry Pi 4 · bateria de 12/11/2026 · medições exploratórias</p>
-    <h1 class="lp-titulo">Quanto tempo e quanta memória 7 modelos de detecção gastam no Raspberry Pi</h1>
+    <p class="lp-kicker">Detecção de ataques DoS em tráfego MQTT · rasp (Raspberry Pi 4) · bateria de 12/11/2026 · medições exploratórias</p>
+    <h1 class="lp-titulo">Quanto tempo e quanta memória 7 modelos de detecção gastam no rasp</h1>
     <div class="lp-resumo-painel">
     <p class="lp-rot">Resumo</p>
-    <p class="lp-lede" id="resumo">Quando o modelo analisa um pacote por vez (B = 1), só a RandomForest já passa do limite de 10 ms do projeto: 95% das chamadas dela levaram até <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="acima_p95_max">—</b> ms, conforme o seletor. Nos outros modelos esse tempo fica entre <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_min">—</b> e <b class="lp-num" data-draw="num" data-source="resumo" data-field="abaixo_p95_max">—</b> ms, o que deixa de <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="folga_max" data-dec="1">—</b> ms para a rede, que ainda não foi medida. Nenhum modelo acrescenta mais de <b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max" data-dec="1">—</b> MiB de memória (<b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</b>% da RAM do Pi). O chip chegou a <b class="lp-num" data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</b> °C e em nenhum momento reduziu a frequência por calor.</p>
+    <p class="lp-lede" id="resumo">Com 1 linha por chamada (o detector decidindo um pacote por vez), o p95 da latência em processo vai de <b class="lp-num" data-draw="num" data-source="resumo" data-field="outros_p95_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="outros_p95_max">—</b> ms nos modelos que não são a RandomForest. A RandomForest é a mais lenta: de <b class="lp-num" data-draw="num" data-source="resumo" data-field="rf_p95_min">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="rf_p95_max">—</b> ms, conforme o seletor. Nenhum modelo acrescenta mais de <b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max" data-dec="1">—</b> MiB de memória (<b class="lp-num" data-draw="num" data-source="resumo" data-field="dpss_max_pct">—</b>% da RAM do rasp). O chip chegou a <b class="lp-num" data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</b> °C e em nenhum momento reduziu a frequência por calor. Todos os números são exploratórios.</p>
     </div>
    </div>
    <section class="lp-dispositivo" id="dispositivo" aria-labelledby="dispositivo-rot">
@@ -39,12 +39,12 @@
 
   <section class="lp-guia" id="como-ler" aria-labelledby="como-ler-tit">
     <h2 id="como-ler-tit">Como ler esta página</h2>
-    <p class="lp-guia-intro">O projeto quer detectar ataques de negação de serviço (DoS) em tráfego MQTT, um protocolo de mensagens comum em internet das coisas, rodando o detector num aparelho pequeno, o Raspberry Pi. Esta página mostra quanto custa rodar cada modelo ali, em tempo e em memória. Os modelos já estavam treinados, e a página não diz se eles acertam.</p>
+    <p class="lp-guia-intro">O projeto quer detectar ataques de negação de serviço (DoS) em tráfego MQTT, um protocolo de mensagens comum em internet das coisas, rodando o detector num aparelho pequeno, o rasp. Esta página mostra quanto custa rodar cada modelo ali, em tempo e em memória. Os modelos já estavam treinados, e a página não diz se eles acertam.</p>
     <dl>
       <div><dt>Chamada</dt><dd>Cada vez que o programa entrega dados ao modelo e recebe a classificação (o método <code>predict</code>). O tempo medido é só o dessa chamada.</dd></div>
-      <div><dt>B, o tamanho do lote</dt><dd>Quantos registros vão em cada chamada; um registro são os dados de um pacote. <b>B = 1</b> é o detector decidindo um pacote por vez, o caso em que o tempo de resposta importa. <b>B = 1024</b> é processar 1.024 pacotes de uma vez, em lote.</dd></div>
+      <div><dt>Linhas por chamada (tamanho do lote)</dt><dd>Quantos registros vão em cada chamada; um registro são os dados de um pacote. <b>1 linha por chamada</b> é o detector decidindo um pacote por vez, o caso em que o tempo de resposta importa. <b>1.024 linhas por chamada</b> é processar 1.024 pacotes de uma vez, em lote.</dd></div>
       <div><dt>p50, p95, p99</dt><dd>Percentis dos tempos das chamadas. p50 (mediana): metade das chamadas levou até esse tempo. p95: só 1 chamada em cada 20 foi mais lenta. p99: só 1 em cada 100.</dd></div>
-      <div><dt>Limite de 10 ms</dt><dd>O projeto quer que o detector responda em até 10 ms no p95, contando a rede (HTTP). Aqui se mediu só o modelo. Quem já passa de 10 ms não cumpre o limite; quem fica abaixo ainda depende do que a rede vai somar.</dd></div>
+      <div><dt>Em processo</dt><dd>Só o tempo do modelo (o <code>predict</code>) dentro do programa, sem rede, HTTP nem conversão para JSON. A latência via HTTP em loopback está na etapa seguinte.</dd></div>
       <div><dt>Configuração e seletor</dt><dd>Configuração é um modelo com um seletor de variáveis, que escolhe quais medidas de cada pacote o modelo recebe: LowVariance deixa 11; MutualInformation k=5 e k=8 deixam 5 e 8. GradientBoosting e RandomForest foram medidos com os três seletores; os outros modelos, só com LowVariance.</dd></div>
       <div><dt>Repetição</dt><dd>Uma execução nova do programa, que faz 2.000 chamadas cronometradas seguidas. Cada configuração foi medida em 5 repetições (3 nos controles da árvore).</dd></div>
       <div><dt>Intervalos (barras)</dt><dd>Intervalo de 95% em volta do p95 e do p99: a faixa de valores compatível com estas repetições. É exploratório e não cobre outros aparelhos nem outros dias.</dd></div>
@@ -56,14 +56,14 @@
     <p class="lp-foco-rot">Todas as execuções rodaram nas mesmas condições: sem interface gráfica, com a CPU fixa na frequência máxima (1,8 GHz, governor performance), nada medindo ao lado e 1 thread por processo</p>
     <div class="lp-tiles">
       <div class="lp-card">
-        <span class="lp-card-rot">Configurações que passam de 10 ms com um pacote por vez (p95, B = 1)</span>
-        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="n_acima" data-dec="0">—</span><span class="lp-card-un">de 11</span></span>
-        <span class="lp-card-sub">As três são RandomForest, uma com cada seletor</span>
+        <span class="lp-card-rot">Menor p95 com 1 linha por chamada (ms)</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="p95_min">—</span><span class="lp-card-un">ms</span></span>
+        <span class="lp-card-sub">Entre as 11 configurações; o maior é <span class="lp-num" data-draw="num" data-source="resumo" data-field="p95_max">—</span> ms (RandomForest)</span>
       </div>
       <div class="lp-card">
-        <span class="lp-card-rot">Menor sobra até 10 ms entre as que ficam abaixo (B = 1)</span>
-        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="folga_min" data-dec="1">—</span><span class="lp-card-un">ms</span></span>
-        <span class="lp-card-sub">É a do SVM. Esse é o tempo que resta para a rede, contado a partir do limite superior do intervalo do p95</span>
+        <span class="lp-card-rot">Configurações medidas</span>
+        <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="n_cfg" data-dec="0">—</span><span class="lp-card-un">de 11</span></span>
+        <span class="lp-card-sub">7 modelos com o seletor LowVariance e 4 com MutualInformation (as 4 ainda sem MCC no teste)</span>
       </div>
       <div class="lp-card">
         <span class="lp-card-rot">Maior memória acrescentada por um modelo (ΔPSS)</span>
@@ -73,7 +73,7 @@
       <div class="lp-card">
         <span class="lp-card-rot">Temperatura máxima do chip</span>
         <span class="lp-card-val"><span data-draw="num" data-source="resumo" data-field="temp_max" data-dec="1">—</span><span class="lp-card-un">°C</span></span>
-        <span class="lp-card-sub">O Pi 4 só reduz a frequência a partir de 80 °C. A árvore medida no início e no fim ficou de <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_min" data-dec="1">—</span>% a <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_max" data-dec="1">—</span>% mais lenta</span>
+        <span class="lp-card-sub">O rasp só reduz a frequência a partir de 80 °C. A árvore medida no início e no fim ficou de <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_min" data-dec="1">—</span>% a <span class="lp-num" data-draw="num" data-source="resumo" data-field="der_max" data-dec="1">—</span>% mais lenta</span>
       </div>
     </div>
   </section>
@@ -81,12 +81,12 @@
   <aside class="lp-ressalvas" id="ressalvas">
     <h2>Ressalvas</h2>
     <ul>
-      <li>São medições exploratórias de um único Raspberry Pi sem ventoinha. Nenhum número aqui é resultado final, e outro aparelho pode dar valores diferentes.</li>
-      <li>Os tempos são só do modelo (o <code>predict</code>), sem rede, HTTP nem conversão para JSON. Com estes dados dá para dizer quem já passa do limite de 10 ms, mas não quem o cumpre.</li>
+      <li>São medições exploratórias de um único rasp sem ventoinha. Nenhum número aqui é resultado final, e outro aparelho pode dar valores diferentes.</li>
+      <li>Os tempos são só do modelo (o <code>predict</code>), sem rede, HTTP nem conversão para JSON. Rede e HTTP não entram nestes números.</li>
       <li>Os modelos rodaram numa ordem fixa, não sorteada, e o chip esquentou ao longo da bateria: no início de cada execução a temperatura foi de 51 °C a 72 °C, e os modelos mais pesados rodaram mais quentes. A mesma árvore, medida no início e no fim, ficou de 1,4% a 2,0% mais lenta. Por isso, <b>diferenças menores que ~3% entre modelos não devem ser interpretadas</b>.</li>
-      <li>Há poucas repetições: 5 por configuração (3 nos controles da árvore; 10 no SVM com B = 1024). Com tão poucas, o intervalo bootstrap subestima a incerteza do p95. Para o p95, a página usa o mais largo entre o bootstrap e o IC-t das repetições; quando blocos 2× ou 4× maiores alargam o bootstrap em mais de 10%, usa a faixa mais larga.</li>
-      <li>Todas as repetições vêm do mesmo Pi, ligado uma única vez, no mesmo ambiente (pseudorreplicação). Os intervalos medem a variação entre repetições, não entre aparelhos, reinícios ou temperaturas da sala.</li>
-      <li>O SVM com B = 1024 tem 1.000 chamadas por repetição, em vez de 2.000, e por isso o p99 de cada repetição se apoia em poucas chamadas. Esse caso não entra no limite de latência.</li>
+      <li>Há poucas repetições: 5 por configuração (3 nos controles da árvore; 10 no SVM com 1.024 linhas por chamada). Com tão poucas, o intervalo bootstrap subestima a incerteza do p95. Para o p95, a página usa o mais largo entre o bootstrap e o IC-t das repetições; quando blocos 2× ou 4× maiores alargam o bootstrap em mais de 10%, usa a faixa mais larga.</li>
+      <li>Todas as repetições vêm do mesmo rasp, ligado uma única vez, no mesmo ambiente (pseudorreplicação). Os intervalos medem a variação entre repetições, não entre aparelhos, reinícios ou temperaturas da sala.</li>
+      <li>O SVM com 1.024 linhas por chamada tem 1.000 chamadas por repetição, em vez de 2.000, e por isso o p99 de cada repetição se apoia em poucas chamadas. Por isso o p99 desse caso é o menos confiável da página.</li>
       <li>Abaixo de ~1 MiB, a memória acrescentada não se distingue de zero: a memória do programa sem modelo variou de 95,4 a 96,3 MiB entre execuções. O valor negativo do LDA é ruído.</li>
       <li>A página não mede se os modelos acertam (MCC, F1). Por isso não há ranking: um modelo rápido pode classificar mal.</li>
     </ul>
@@ -99,51 +99,51 @@
   </ul>
 
   <section id="limite" class="lp-sec">
-    <h2>Quais modelos já passam de 10 ms ao analisar um pacote por vez?</h2>
-    <p class="lp-pergunta">Cada linha é uma configuração, com as chamadas de todas as repetições juntas. A linha vermelha marca o limite de 10 ms. A coluna da direita mostra quanto tempo sobra até ele para a rede, que ainda vai somar.</p>
+    <h2>Qual é a latência de cada configuração com 1 linha por chamada?</h2>
+    <p class="lp-pergunta">Cada linha é uma configuração, com as chamadas de todas as repetições juntas. A coluna da direita traz o p95 em ms. Não há linha de limite.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
       <li><span class="lp-mk">│</span>p50 (mediana)</li>
       <li><span class="lp-mk">●</span>p95, com o intervalo na barra grossa</li>
       <li><span class="lp-mk">○</span>p99, com o intervalo na barra fina</li>
     </ul>
     <div class="lp-chart" data-draw="latencia" data-source="cfg"></div>
-    <p class="lp-nota">Nesta escala, as barras do p95 quase somem atrás do ponto, porque a incerteza é pequena perto dos tempos. Passe o mouse sobre uma linha para ver os valores exatos e o método de cada intervalo. A sobra é 10 ms menos o limite superior do intervalo do p95.</p>
+    <p class="lp-nota">Nesta escala, as barras do p95 quase somem atrás do ponto, porque a incerteza é pequena perto dos tempos. Passe o mouse sobre uma linha para ver os valores exatos e o método de cada intervalo.</p>
   </section>
 
   <section id="cauda" class="lp-sec">
-    <h2>Em quais modelos as chamadas lentas pesam mais? Isso muda entre B = 1 e B = 1024?</h2>
+    <h2>Em quais modelos as chamadas lentas pesam mais? Isso muda entre 1 linha por chamada e 1.024 linhas por chamada?</h2>
     <p class="lp-pergunta">A cauda são as chamadas mais lentas. À esquerda, p99 dividido pelo p50: 1,18× quer dizer que a chamada do p99 levou 18% mais que a mediana. À direita, a autocorrelação, que mede se as chamadas lentas vêm seguidas. Perto de 0, cada chamada independe da anterior; quanto mais alta, mais as lentas aparecem em grupos, e menos informação independente as 2.000 chamadas carregam.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
-      <li><span class="lp-mk">●</span>B = 1 (um pacote por chamada)</li>
-      <li><span class="lp-mk">○</span>B = 1024 (lote)</li>
+      <li><span class="lp-mk">●</span>1 linha por chamada (um pacote por chamada)</li>
+      <li><span class="lp-mk">○</span>1.024 linhas por chamada (lote)</li>
     </ul>
     <div class="lp-chart" data-draw="cauda" data-source="cfg"></div>
-    <p class="lp-nota">A autocorrelação é a média das repetições. No SVM com B = 1024 cada repetição tem 1.000 chamadas em vez de 2.000.</p>
+    <p class="lp-nota">A autocorrelação é a média das repetições. No SVM com 1.024 linhas por chamada cada repetição tem 1.000 chamadas em vez de 2.000.</p>
   </section>
 
   <section id="custo" class="lp-sec">
     <h2>Quanto custa cada chamada, e quanto custa cada pacote a mais?</h2>
-    <p class="lp-pergunta">Toda chamada tem um custo de entrada, mesmo com um pacote só (o custo fixo, <i>a</i>), e cada pacote a mais acrescenta um pouco (o custo por registro, <i>b</i>). Os dois saem da reta t(B) = a + b·B traçada pelas medianas de B = 1 e B = 1024. Com B = 1 quase todo o tempo é custo fixo; em lote ele se dilui. A última coluna mostra quantos pacotes por segundo cada modelo classifica com B = 1024.</p>
+    <p class="lp-pergunta">Toda chamada tem um custo de entrada, mesmo com um pacote só (o custo fixo, <i>a</i>), e cada pacote a mais acrescenta um pouco (o custo por registro, <i>b</i>). Os dois saem da reta t(n) = a + b·n, com n = linhas por chamada, traçada pelas medianas de 1 linha por chamada e 1.024 linhas por chamada. Com 1 linha por chamada quase todo o tempo é custo fixo; em lote ele se dilui. A última coluna mostra quantos pacotes por segundo cada modelo classifica com 1.024 linhas por chamada.</p>
     <div class="lp-tabela-rolagem" data-draw="custo" data-source="cfg"></div>
     <p class="lp-nota">A reta passa só por dois pontos e não verifica se o custo cresce em linha reta entre eles.</p>
   </section>
 
   <section id="seletor" class="lp-sec">
     <h2>Trocar o seletor muda o tempo ou a memória do mesmo modelo?</h2>
-    <p class="lp-pergunta">GradientBoosting e RandomForest foram medidos com os três seletores. Com um pacote por vez (B = 1), trocar o seletor mudou o p95 em até <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1_max" data-dec="1">—</b>%, dentro da variação causada pelo aquecimento. Em lote (B = 1024), as versões com MutualInformation, que recebem menos variáveis, chegaram a ser <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1024_max" data-dec="1">—</b>% mais rápidas, mesmo tendo rodado depois e com o chip mais quente. Diferenças de 3% ou mais estão em negrito.</p>
+    <p class="lp-pergunta">GradientBoosting e RandomForest foram medidos com os três seletores. Com um pacote por vez (1 linha por chamada), trocar o seletor mudou o p95 em até <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1_max" data-dec="1">—</b>%, dentro da variação causada pelo aquecimento. Em lote (1.024 linhas por chamada), as versões com MutualInformation, que recebem menos variáveis, chegaram a ser <b class="lp-num" data-draw="num" data-source="resumo" data-field="sel_b1024_max" data-dec="1">—</b>% mais rápidas, mesmo tendo rodado depois e com o chip mais quente. Diferenças de 3% ou mais estão em negrito.</p>
     <div class="lp-tabela-rolagem" data-draw="seletor" data-source="cfg"></div>
   </section>
 
   <section id="memoria" class="lp-sec">
     <h2>Quanta memória cada modelo acrescenta?</h2>
-    <p class="lp-pergunta">ΔPSS é a memória que o programa ocupa com o modelo carregado menos a que ele ocupa com um modelo nulo, que responde sempre a mesma coisa. A faixa cinza (±1 MiB) é a variação normal do sistema: o que cai ali não se distingue de zero. À direita, a mediana como fração da RAM do Pi.</p>
+    <p class="lp-pergunta">ΔPSS é a memória que o programa ocupa com o modelo carregado menos a que ele ocupa com um modelo nulo, que responde sempre a mesma coisa. A faixa cinza (±1 MiB) é a variação normal do sistema: o que cai ali não se distingue de zero. À direita, a mediana como fração da RAM do rasp.</p>
     <div class="lp-chart" data-draw="memoria" data-source="cfg"></div>
-    <p class="lp-nota">Cada ponto é uma repetição. A memória do SVM vem das duas metades com B = 1024. O pico de memória do processo (maxrss) fica, em média, <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_max" data-dec="1">—</b> MiB acima do PSS em todas as configurações.</p>
+    <p class="lp-nota">Cada ponto é uma repetição. A memória do SVM vem das duas metades com 1.024 linhas por chamada. O pico de memória do processo (maxrss) fica, em média, <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_min" data-dec="1">—</b> a <b class="lp-num" data-draw="num" data-source="resumo" data-field="pico_max" data-dec="1">—</b> MiB acima do PSS em todas as configurações.</p>
   </section>
 
   <section id="temperatura" class="lp-sec">
     <h2>O chip chegou perto de 80 °C? O aquecimento mudou os tempos?</h2>
-    <p class="lp-pergunta">O Pi não tem ventoinha, e a partir de 80 °C ele reduz a frequência da CPU, o que deixaria as chamadas mais lentas. O gráfico mostra as 14 execuções na ordem em que rodaram, com a temperatura antes e depois de cada uma. Para ver o efeito do aquecimento, a mesma árvore de decisão abriu e fechou a bateria. No fim ela estava <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1" data-dec="1">—</span>%</b> mais lenta no p50 e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1" data-dec="1">—</span>%</b> no p95 com B = 1, e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1024" data-dec="1">—</span>%</b> e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1024" data-dec="1">—</span>%</b> com B = 1024.</p>
+    <p class="lp-pergunta">O rasp não tem ventoinha, e a partir de 80 °C ele reduz a frequência da CPU, o que deixaria as chamadas mais lentas. O gráfico mostra as 14 execuções na ordem em que rodaram, com a temperatura antes e depois de cada uma. Para ver o efeito do aquecimento, a mesma árvore de decisão abriu e fechou a bateria. No fim ela estava <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1" data-dec="1">—</span>%</b> mais lenta no p50 e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1" data-dec="1">—</span>%</b> no p95 com 1 linha por chamada, e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p50_b1024" data-dec="1">—</span>%</b> e <b class="lp-num">+<span data-draw="num" data-source="resumo" data-field="der_p95_b1024" data-dec="1">—</span>%</b> com 1.024 linhas por chamada.</p>
     <ul class="lp-legenda" aria-label="Marcas do gráfico">
       <li><span class="lp-mk">○</span>temperatura antes da execução</li>
       <li><span class="lp-mk">●</span>depois</li>
@@ -154,7 +154,7 @@
 
   <section id="svm" class="lp-sec">
     <h2>O SVM em lote mudou entre as duas metades da medição?</h2>
-    <p class="lp-pergunta">Com B = 1024, o SVM leva cerca de 0,32 s por chamada. Ele foi medido em duas metades de 5 repetições, com 1.000 chamadas cada e 5 minutos de descanso entre elas. As medianas das metades diferem <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p50" data-dec="1">—</b>% no p50 e <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p95" data-dec="1">—</b>% no p95. A repetição mais lenta é a <b class="lp-num" data-draw="num" data-source="svm" data-field="lenta_rep" data-dec="0">—</b>ª da metade <span data-draw="num" data-source="svm" data-field="lenta_metade" data-dec="-1">—</span>, <b class="lp-num">+<span data-draw="num" data-source="svm" data-field="lenta_pct" data-dec="1">—</span>%</b> acima da mediana da metade.</p>
+    <p class="lp-pergunta">Com 1.024 linhas por chamada, o SVM leva cerca de 0,32 s por chamada. Ele foi medido em duas metades de 5 repetições, com 1.000 chamadas cada e 5 minutos de descanso entre elas. As medianas das metades diferem <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p50" data-dec="1">—</b>% no p50 e <b class="lp-num" data-draw="num" data-source="svm" data-field="dif_p95" data-dec="1">—</b>% no p95. A repetição mais lenta é a <b class="lp-num" data-draw="num" data-source="svm" data-field="lenta_rep" data-dec="0">—</b>ª da metade <span data-draw="num" data-source="svm" data-field="lenta_metade" data-dec="-1">—</span>, <b class="lp-num">+<span data-draw="num" data-source="svm" data-field="lenta_pct" data-dec="1">—</span>%</b> acima da mediana da metade.</p>
     <div class="lp-chart" style="min-height:0" data-draw="svm" data-source="repeticoes"></div>
     <p class="lp-nota">Cada ponto é uma repetição; o traço vertical é a mediana da metade. As diferenças são da metade b em relação à metade a.</p>
   </section>
@@ -163,17 +163,17 @@
     <summary>Termos técnicos e nomes dos modelos</summary>
     <dl>
       <dt>Modelos</dt><dd>Árvore de decisão; LDA (análise discriminante linear); QDA (análise discriminante quadrática); GaussianNB (Naive Bayes gaussiano); SVM (máquina de vetores de suporte); GradientBoosting (árvores combinadas por gradient boosting); RandomForest (floresta aleatória, um conjunto de árvores).</dd>
-      <dt>Execução</dt><dd>Uma configuração medida do começo ao fim: 5 repetições (3 nos controles da árvore). Cada repetição é um processo novo, com 1 thread, que descarta 200 chamadas de aquecimento e cronometra 2.000 para cada B (no SVM com B = 1024: 20 e 1.000).</dd>
+      <dt>Execução</dt><dd>Uma configuração medida do começo ao fim: 5 repetições (3 nos controles da árvore). Cada repetição é um processo novo, com 1 thread, que descarta 200 chamadas de aquecimento e cronometra 2.000 para cada tamanho de lote (no SVM com 1.024 linhas por chamada: 20 e 1.000).</dd>
       <dt>Controles da árvore</dt><dd>A árvore de decisão com LowVariance medida no início e no fim da bateria, para estimar quanto o aquecimento e o tempo decorrido mudam os tempos.</dd>
       <dt>Latência em processo</dt><dd>O tempo do <code>predict</code> dentro do programa, sem rede, HTTP nem JSON.</dd>
       <dt>IC bootstrap em blocos</dt><dd>Intervalo de 95% do p95 e do p99 das chamadas juntas, por bootstrap em dois níveis: sorteia repetições e, dentro delas, blocos de chamadas seguidas, porque chamadas vizinhas se parecem. Método fixado antes de ver os dados; exploratório até o protocolo oficial.</dd>
       <dt>IC-t das repetições</dt><dd>Média dos p95 das repetições ± t·dp/√R, com t = 2,776 para 5 repetições, 4,303 para 3 e 2,262 para 10.</dd>
       <dt>Autocorrelação (lag 1)</dt><dd>Correlação entre a duração de uma chamada e a da seguinte.</dd>
       <dt>n efetivo</dt><dd>Quantas chamadas independentes uma repetição vale, dada a autocorrelação ρ: n·(1−ρ)/(1+ρ).</dd>
-      <dt>Custo fixo e por registro</dt><dd>Reta t(B) = a + b·B pelas medianas de B = 1 e B = 1024: <i>a</i> é o custo de qualquer chamada, <i>b</i> o de cada registro a mais.</dd>
+      <dt>Custo fixo e por registro</dt><dd>Reta t(n) = a + b·n, com n = linhas por chamada, pelas medianas de 1 linha por chamada e 1.024 linhas por chamada: <i>a</i> é o custo de qualquer chamada, <i>b</i> o de cada registro a mais.</dd>
       <dt>PSS, USS, maxrss</dt><dd>PSS: memória do processo, com as páginas compartilhadas divididas entre os processos que as usam. USS: só a memória exclusiva do processo. maxrss: pico de memória residente.</dd>
       <dt>Modelo nulo e ΔPSS</dt><dd>O mesmo programa com um estimador que devolve sempre a mesma classe. ΔPSS é o PSS com o modelo menos o PSS com o modelo nulo.</dd>
-      <dt>throttled</dt><dd>Registro do Pi de redução de frequência por falta de tensão ou por calor desde que foi ligado; 0x0 = nenhuma.</dd>
+      <dt>throttled</dt><dd>Registro do rasp de redução de frequência por falta de tensão ou por calor desde que foi ligado; 0x0 = nenhuma.</dd>
     </dl>
   </details>
 </div>
@@ -184,18 +184,17 @@
   const LP = window.LP = {};
   LP.f = (v, d) => (v == null || isNaN(+v)) ? '—' : L.format(',.' + (d == null ? 2 : d) + 'f')(+v);
   LP.RAM = 3795; // MiB
-  LP.LIMITE_MS = 10;
   LP.T = { 3: 4.303, 5: 2.776, 10: 2.262 };
   // Configurações na ordem dos gráficos. sel: 0 LowVariance, 1 MutualInformation k=5, 2 k=8.
   const c = (id, rot, fam, sel, x) => Object.assign({ id, rot, fam, sel, g1: id, g1024: id, r1: [id], r1024: [id], mem: [id] }, x);
-  const svmA = 'LowVariance__SVM_B1024_a', svmB = 'LowVariance__SVM_B1024_b';
+  const svmA = 'LowVariance__SVM_1024_linhas_metade_a', svmB = 'LowVariance__SVM_1024_linhas_metade_b';
   LP.CFG = [
     c('controle_inicio', 'Árvore · LowVariance · início', 'arv', 0),
     c('controle_fim', 'Árvore · LowVariance · fim', 'arv', 0),
     c('LowVariance__LDA', 'LDA', 'out', 0),
     c('LowVariance__GaussianNB', 'GaussianNB', 'out', 0),
     c('LowVariance__QDA', 'QDA', 'out', 0),
-    c('LowVariance__SVM', 'SVM', 'out', 0, { g1: 'LowVariance__SVM_B1', g1024: 'SVM_B1024', r1: ['LowVariance__SVM_B1'], r1024: [svmA, svmB], mem: [svmA, svmB] }),
+    c('LowVariance__SVM', 'SVM', 'out', 0, { g1: 'LowVariance__SVM_1_linha', g1024: 'SVM_1024_linhas', r1: ['LowVariance__SVM_1_linha'], r1024: [svmA, svmB], mem: [svmA, svmB] }),
     c('LowVariance__GradientBoosting', 'GradientBoosting', 'gb', 0),
     c('MutualInformation-k5__GradientBoosting', 'GradientBoosting · MutualInformation k=5', 'gb', 1),
     c('MutualInformation-k8__GradientBoosting', 'GradientBoosting · MutualInformation k=8', 'gb', 2),
@@ -212,7 +211,7 @@
     LowVariance__RandomForest: ['RandomForest', 0],
     'MutualInformation-k5__RandomForest': ['RandomForest · MutualInformation k=5', 1],
     'MutualInformation-k8__RandomForest': ['RandomForest · MutualInformation k=8', 2],
-    LowVariance__SVM_B1: ['SVM · B = 1', 0], [svmA]: ['SVM · B = 1024, metade a', 0], [svmB]: ['SVM · B = 1024, metade b', 0]
+    LowVariance__SVM_1_linha: ['SVM · 1 linha por chamada', 0], [svmA]: ['SVM · 1.024 linhas por chamada, metade a', 0], [svmB]: ['SVM · 1.024 linhas por chamada, metade b', 0]
   };
   LP.cor = (g) => (g < 4 && dash.colors && dash.colors[g]) ? dash.colors[g] : 'var(--cds-chart-muted)';
   LP.faixaTxt = (f, d) => LP.f(f[0], d) + ' a ' + LP.f(f[1], d);
@@ -343,7 +342,6 @@ dash.calc('cfg', {
     o.por_registro_us = (o.b1024.p50 - o.b1.p50) / 1023 * 1000;
     o.fixo_ms = o.b1.p50 - o.por_registro_us / 1000;
     o.reg_s = 1024 / (o.b1024.p50 / 1000);
-    o.folga = LP.LIMITE_MS - o.b1.ic95[1];
     const mm = mem.filter((x) => c.mem.includes(x.rotulo));
     o.dpss = mm.map((x) => ({ v: +x.delta_pss_MiB, rotulo: x.rotulo, rep: +x.repeticao, nulo: +x.pss_modelo_nulo_MiB }));
     o.dpss_med = d3.median(mm, (x) => +x.delta_pss_MiB);
@@ -358,7 +356,7 @@ dash.calc('resumo', {
   description: 'Contagens e faixas usadas no resumo, nos cartões e no texto das seções.',
   inputs: ['cfg', 'execucoes'],
   fn: (cfg, ex) => {
-    const acima = cfg.filter((c) => c.b1.p95 > LP.LIMITE_MS), abaixo = cfg.filter((c) => c.b1.p95 <= LP.LIMITE_MS);
+    const rf = cfg.filter((c) => c.fam === 'rf'), outros = cfg.filter((c) => c.fam !== 'rf');
     const ini = cfg.find((c) => c.id === 'controle_inicio'), fim = cfg.find((c) => c.id === 'controle_fim');
     const der = (b, q) => (fim[b][q] / ini[b][q] - 1) * 100;
     const ders = [der('b1', 'p50'), der('b1', 'p95'), der('b1024', 'p50'), der('b1024', 'p95')];
@@ -366,11 +364,10 @@ dash.calc('resumo', {
     const lv = (c) => cfg.find((x) => x.fam === c.fam && x.sel === 0);
     const mi = cfg.filter((c) => c.sel > 0);
     return [{
-      n_acima: acima.length,
-      acima_p95_min: d3.min(acima, (c) => c.b1.p95), acima_p95_max: d3.max(acima, (c) => c.b1.p95),
-      abaixo_p95_min: d3.min(abaixo, (c) => c.b1.p95), abaixo_p95_max: d3.max(abaixo, (c) => c.b1.p95),
-      folga_min: d3.min(abaixo, (c) => c.folga), folga_max: d3.max(abaixo, (c) => c.folga),
-      dpss_max: maxD.dpss_med, dpss_max_pct: maxD.pct_ram,
+      n_cfg: new Set(cfg.map((c) => c.id.replace(/^controle_.*/, 'LowVariance__DecisionTree'))).size, p95_min: d3.min(cfg, (c) => c.b1.p95), p95_max: d3.max(cfg, (c) => c.b1.p95),
+      rf_p95_min: d3.min(rf, (c) => c.b1.p95), rf_p95_max: d3.max(rf, (c) => c.b1.p95),
+      outros_p95_min: d3.min(outros, (c) => c.b1.p95), outros_p95_max: d3.max(outros, (c) => c.b1.p95),
+            dpss_max: maxD.dpss_med, dpss_max_pct: maxD.pct_ram,
       pico_min: d3.min(cfg, (c) => c.pico_extra), pico_max: d3.max(cfg, (c) => c.pico_extra),
       temp_max: d3.max(ex, (e) => Math.max(+e.temp_antes_C, +e.temp_depois_C)),
       der_p50_b1: ders[0], der_p95_b1: ders[1], der_p50_b1024: ders[2], der_p95_b1024: ders[3],
@@ -384,11 +381,11 @@ dash.calc('resumo', {
 });
 
 dash.calc('svm', {
-  title: 'Metades do SVM em B = 1024',
+  title: 'Metades do SVM em 1.024 linhas por chamada',
   description: 'Diferença entre as medianas das duas metades (b em relação a a) e a repetição mais lenta.',
   inputs: ['repeticoes'],
   fn: (rep) => {
-    const m = (h) => rep.filter((r) => r.rotulo === 'LowVariance__SVM_B1024_' + h);
+    const m = (h) => rep.filter((r) => r.rotulo === 'LowVariance__SVM_1024_linhas_metade_' + h);
     const med = (h, q) => d3.median(m(h), (r) => +r[q]);
     const todas = ['a', 'b'].flatMap((h) => m(h).map((r) => ({ h, rep: +r.repeticao, v: +r.p50_us, pct: (+r.p50_us / med(h, 'p50_us') - 1) * 100 })));
     const lenta = todas.reduce((a, r) => r.pct > a.pct ? r : a);
@@ -414,17 +411,16 @@ dash.draw('num', (el) => {
   el.textContent = dec < 0 ? v : LP.f(v, dec);
 });
 
-/* 1. Latência em B = 1 frente ao limite de 10 ms */
+/* 1. Latência com 1 linha por chamada */
 dash.draw('latencia', (el) => {
   const C = dash.data('cfg');
   if (!LP.ok(el, [C])) return;
   LP.linhas(el, {
-    aria: 'p50, p95 e p99 da latência em processo com B = 1 por configuração, com o limite de 10 ms e a folga até ele.',
+    aria: 'p50, p95 e p99 da latência em processo com 1 linha por chamada por configuração, com os intervalos do p95 e do p99.',
     rows: C.data,
     panels: [{
-      titulo: 'Tempo por chamada (ms) · B = 1, um pacote por vez', tituloCurto: 'Tempo por chamada (ms)',
+      titulo: 'Tempo por chamada (ms) · 1 linha por chamada, um pacote por vez', tituloCurto: 'Tempo por chamada (ms)',
       dom: [0, d3.max(C.data, (c) => c.b1.ic99[1]) * 1.03], dec: 0,
-      refs: [{ v: LP.LIMITE_MS, rot: '10 ms: limite do projeto, com a rede', rotCurto: 'limite: 10 ms', cor: 'var(--cds-chart-status-critical)' }],
       marca: (svg, c, xs, y, tip) => {
         const b = c.b1, cor = LP.cor(c.sel);
         LP.seg(svg, xs(b.ic99[0]), xs(b.ic99[1]), y, cor, 1.5, 0.5);
@@ -439,12 +435,12 @@ dash.draw('latencia', (el) => {
           b.n + ' repetições × ' + LP.f(b.nCham, 0) + ' chamadas']);
       }
     }],
-    valorTit: 'sobra (ms)',
-    valor: (c) => c.folga > 0 ? { txt: '+' + LP.f(c.folga, 1) } : { txt: 'excede', cor: 'var(--cds-chart-status-critical)' }
+    valorTit: 'p95 (ms)',
+    valor: (c) => ({ txt: LP.f(c.b1.p95, 2) })
   });
 });
 
-/* 2. Cauda e autocorrelação, B = 1 e B = 1024 */
+/* 2. Cauda e autocorrelação, 1 linha por chamada e 1.024 linhas por chamada */
 dash.draw('cauda', (el) => {
   const C = dash.data('cfg');
   if (!LP.ok(el, [C])) return;
@@ -455,13 +451,13 @@ dash.draw('cauda', (el) => {
       svg.append('line').attr('x1', xs(v1)).attr('x2', xs(v2)).attr('y1', y).attr('y2', y).style('stroke', cor).style('stroke-width', 1.5).style('opacity', 0.5);
       LP.ponto(svg, xs(v1), y, cor, true);
       LP.ponto(svg, xs(v2), y, cor, false);
-      LP.alvo(svg, xs, y, tip, [c.rot, titulo, 'B = 1: ' + fmt(v1) + ' · B = 1024: ' + fmt(v2),
-        'n efetivo por repetição: ' + LP.f(c.b1.nEf, 0) + ' (B = 1) e ' + LP.f(c.b1024.nEf, 0) + ' (B = 1024) de ' + LP.f(c.b1.nCham, 0) + ' / ' + LP.f(c.b1024.nCham, 0)]);
+      LP.alvo(svg, xs, y, tip, [c.rot, titulo, '1 linha por chamada: ' + fmt(v1) + ' · 1.024 linhas por chamada: ' + fmt(v2),
+        'n efetivo por repetição: ' + LP.f(c.b1.nEf, 0) + ' (1 linha por chamada) e ' + LP.f(c.b1024.nEf, 0) + ' (1.024 linhas por chamada) de ' + LP.f(c.b1.nCham, 0) + ' / ' + LP.f(c.b1024.nCham, 0)]);
     }
   });
   const razao = (b) => b.p99 / b.p50;
   LP.linhas(el, {
-    aria: 'Razão p99 ÷ p50 e autocorrelação lag 1 por configuração, com B = 1 e B = 1024.',
+    aria: 'Razão p99 ÷ p50 e autocorrelação lag 1 por configuração, com 1 linha por chamada e 1.024 linhas por chamada.',
     rows: C.data,
     panels: [
       par('p99 ÷ p50', razao, [1, d3.max(C.data, (c) => Math.max(razao(c.b1), razao(c.b1024)))], (v) => LP.f(v, 2) + '×'),
@@ -503,7 +499,7 @@ dash.draw('seletor', (el) => {
   el.replaceChildren();
   const t = d3.select(el).append('table').attr('class', 'lp-tabela');
   t.append('thead').append('tr').selectAll('th')
-    .data(['Configuração', 'p95 com B = 1 (ms)', 'Diferença para LowVariance', 'p50 com B = 1024 (ms)', 'Diferença para LowVariance', 'Memória acrescentada, ΔPSS (MiB)', 'Diferença para LowVariance (MiB)'])
+    .data(['Configuração', 'p95 com 1 linha por chamada (ms)', 'Diferença para LowVariance', 'p50 com 1.024 linhas por chamada (ms)', 'Diferença para LowVariance', 'Memória acrescentada, ΔPSS (MiB)', 'Diferença para LowVariance (MiB)'])
     .join('th').attr('scope', 'col').text((d) => d);
   const tr = t.append('tbody').selectAll('tr').data(linhas).join('tr').classed('lp-sep', (c, i) => i && c.fam !== linhas[i - 1].fam);
   const rot = tr.append('td');
@@ -577,12 +573,12 @@ dash.draw('temperatura', (el) => {
   });
 });
 
-/* 7. SVM em B = 1024: metades a e b */
+/* 7. SVM em 1.024 linhas por chamada: metades a e b */
 dash.draw('svm', (el) => {
   const R = dash.data('repeticoes'), E = dash.data('execucoes');
   if (!LP.ok(el, [R, E])) return;
   const rows = ['a', 'b'].map((h) => {
-    const id = 'LowVariance__SVM_B1024_' + h, e = E.data.find((x) => x.rotulo === id);
+    const id = 'LowVariance__SVM_1024_linhas_metade_' + h, e = E.data.find((x) => x.rotulo === id);
     return { h, rot: 'Metade ' + h + ' · ' + e.hora_antes.slice(0, 5) + ' · ' + LP.f(+e.temp_antes_C, 1) + ' → ' + LP.f(+e.temp_depois_C, 1) + ' °C', fam: '', reps: R.data.filter((r) => r.rotulo === id) };
   });
   const todas = rows.flatMap((r) => r.reps);
@@ -599,7 +595,7 @@ dash.draw('svm', (el) => {
     };
   };
   LP.linhas(el, {
-    aria: 'p50 e p95 de cada repetição do SVM com B = 1024 nas metades a e b.',
+    aria: 'p50 e p95 de cada repetição do SVM com 1.024 linhas por chamada nas metades a e b.',
     rows,
     panels: [painel('p50_us', 'p50 por repetição (ms)'), painel('p95_us', 'p95 por repetição (ms)')]
   });
@@ -617,9 +613,9 @@ LowVariance__GradientBoosting,LowVariance__GradientBoosting,LowVariance,Gradient
 LowVariance__LDA,LowVariance__LDA,LowVariance,LDA,1/1024,2000,200,5,18:58:06,53.0,19:00:30,57.9,0x0,0x0,performance,1800000,1800000,2.4,4.5
 LowVariance__QDA,LowVariance__QDA,LowVariance,QDA,1/1024,2000,200,5,19:04:42,56.4,19:08:08,60.8,0x0,0x0,performance,1800000,1800000,3.4,11.9
 LowVariance__RandomForest,LowVariance__RandomForest,LowVariance,RandomForest,1/1024,2000,200,5,19:18:34,57.9,19:29:25,63.7,0x0,0x0,performance,1800000,1800000,10.8,4090.2
-LowVariance__SVM_B1,LowVariance__SVM,LowVariance,SVM,1,2000,200,5,19:52:21,64.7,19:54:02,66.7,0x0,0x0,performance,1800000,1800000,1.7,419.1
-LowVariance__SVM_B1024_a,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,19:54:32,63.7,20:22:18,74.0,0x0,0x0,performance,1800000,1800000,27.8,419.1
-LowVariance__SVM_B1024_b,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,20:27:48,63.7,20:55:35,75.4,0x0,0x0,performance,1800000,1800000,27.8,419.1
+LowVariance__SVM_1_linha,LowVariance__SVM,LowVariance,SVM,1,2000,200,5,19:52:21,64.7,19:54:02,66.7,0x0,0x0,performance,1800000,1800000,1.7,419.1
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,19:54:32,63.7,20:22:18,74.0,0x0,0x0,performance,1800000,1800000,27.8,419.1
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,20:27:48,63.7,20:55:35,75.4,0x0,0x0,performance,1800000,1800000,27.8,419.1
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,MutualInformation,GradientBoosting,1/1024,2000,200,5,19:12:01,56.0,19:14:45,60.8,0x0,0x0,performance,1800000,1800000,2.7,902.8
 MutualInformation-k5__RandomForest,MutualInformation-k5__RandomForest,MutualInformation,RandomForest,1/1024,2000,200,5,19:29:55,60.8,19:40:33,66.2,0x0,0x0,performance,1800000,1800000,10.6,4523.7
 MutualInformation-k8__GradientBoosting,MutualInformation-k8__GradientBoosting,MutualInformation,GradientBoosting,1/1024,2000,200,5,19:15:15,57.4,19:18:04,60.3,0x0,0x0,performance,1800000,1800000,2.8,904.5
@@ -679,21 +675,21 @@ LowVariance__RandomForest,LowVariance__RandomForest,1024,1,2000,33056.8,33626.1,
 LowVariance__RandomForest,LowVariance__RandomForest,1024,2,2000,33764.3,34269.1,38124.0,40529.1,117621.8,3217.0,0.101
 LowVariance__RandomForest,LowVariance__RandomForest,1024,3,2000,33139.6,33709.4,37661.8,40499.7,135440.6,3461.9,0.117
 LowVariance__RandomForest,LowVariance__RandomForest,1024,4,2000,33010.3,33583.7,37515.7,41792.1,113991.8,3221.3,0.112
-LowVariance__SVM_B1,LowVariance__SVM,1,0,2000,6743.0,6718.5,6862.4,7254.3,10758.8,214.0,0.469
-LowVariance__SVM_B1,LowVariance__SVM,1,1,2000,6712.4,6679.8,6837.4,7549.4,10335.1,247.3,0.602
-LowVariance__SVM_B1,LowVariance__SVM,1,2,2000,6687.9,6658.6,6805.6,7317.9,10249.8,236.9,0.563
-LowVariance__SVM_B1,LowVariance__SVM,1,3,2000,6672.2,6648.1,6805.0,7004.6,10541.3,210.1,0.516
-LowVariance__SVM_B1,LowVariance__SVM,1,4,2000,6655.6,6627.2,6779.5,7133.8,10415.3,240.5,0.541
-LowVariance__SVM_B1024_a,LowVariance__SVM,1024,0,1000,321244.7,321010.1,323605.6,324517.8,327585.2,840.4,0.172
-LowVariance__SVM_B1024_a,LowVariance__SVM,1024,1,1000,321145.3,320922.8,323430.5,324444.4,328226.7,915.7,0.128
-LowVariance__SVM_B1024_a,LowVariance__SVM,1024,2,1000,322873.9,322503.0,324894.4,327121.5,343316.4,1708.9,0.63
-LowVariance__SVM_B1024_a,LowVariance__SVM,1024,3,1000,322661.1,322566.4,325007.5,326356.7,328053.6,955.3,0.189
-LowVariance__SVM_B1024_a,LowVariance__SVM,1024,4,1000,320252.0,320106.2,322283.0,323246.8,326412.0,863.4,0.231
-LowVariance__SVM_B1024_b,LowVariance__SVM,1024,0,1000,326517.1,326335.1,328879.6,329908.6,332364.9,880.8,0.105
-LowVariance__SVM_B1024_b,LowVariance__SVM,1024,1,1000,320414.1,320234.8,322343.2,323444.0,324160.1,779.4,0.224
-LowVariance__SVM_B1024_b,LowVariance__SVM,1024,2,1000,321202.5,320996.9,323742.5,324573.7,326247.0,865.2,0.045
-LowVariance__SVM_B1024_b,LowVariance__SVM,1024,3,1000,321066.9,321189.8,323015.9,324844.2,326175.6,1153.5,0.371
-LowVariance__SVM_B1024_b,LowVariance__SVM,1024,4,1000,319980.6,319693.0,321956.9,323221.5,324196.6,883.5,0.305
+LowVariance__SVM_1_linha,LowVariance__SVM,1,0,2000,6743.0,6718.5,6862.4,7254.3,10758.8,214.0,0.469
+LowVariance__SVM_1_linha,LowVariance__SVM,1,1,2000,6712.4,6679.8,6837.4,7549.4,10335.1,247.3,0.602
+LowVariance__SVM_1_linha,LowVariance__SVM,1,2,2000,6687.9,6658.6,6805.6,7317.9,10249.8,236.9,0.563
+LowVariance__SVM_1_linha,LowVariance__SVM,1,3,2000,6672.2,6648.1,6805.0,7004.6,10541.3,210.1,0.516
+LowVariance__SVM_1_linha,LowVariance__SVM,1,4,2000,6655.6,6627.2,6779.5,7133.8,10415.3,240.5,0.541
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1024,0,1000,321244.7,321010.1,323605.6,324517.8,327585.2,840.4,0.172
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1024,1,1000,321145.3,320922.8,323430.5,324444.4,328226.7,915.7,0.128
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1024,2,1000,322873.9,322503.0,324894.4,327121.5,343316.4,1708.9,0.63
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1024,3,1000,322661.1,322566.4,325007.5,326356.7,328053.6,955.3,0.189
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1024,4,1000,320252.0,320106.2,322283.0,323246.8,326412.0,863.4,0.231
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1024,0,1000,326517.1,326335.1,328879.6,329908.6,332364.9,880.8,0.105
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1024,1,1000,320414.1,320234.8,322343.2,323444.0,324160.1,779.4,0.224
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1024,2,1000,321202.5,320996.9,323742.5,324573.7,326247.0,865.2,0.045
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1024,3,1000,321066.9,321189.8,323015.9,324844.2,326175.6,1153.5,0.371
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1024,4,1000,319980.6,319693.0,321956.9,323221.5,324196.6,883.5,0.305
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1,0,2000,4177.8,4160.4,4307.1,4523.4,6767.8,136.0,0.594
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1,1,2000,4201.6,4177.6,4314.1,4602.9,7093.5,185.1,0.635
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1,2,2000,4199.9,4188.1,4302.8,4423.6,6963.2,128.3,0.672
@@ -759,7 +755,7 @@ LowVariance__QDA,LowVariance__QDA,1,5,2000,5863.0,6029.2,6011.4,6043.6,6374.3,62
 LowVariance__QDA,LowVariance__QDA,1024,5,2000,9628.7,9846.9,9829.0,9861.4,10330.6,10038.7,11377.0,10,0.449,760,100,0.12,1.88,poucos_processos,9829.0,9862.7,10026.7,11454.6,9828.5,9862.7,10026.7,11380.9
 LowVariance__RandomForest,LowVariance__RandomForest,1,5,2000,22447.8,22941.2,22802.9,23044.4,26449.1,24974.7,27969.8,10,0.405,847,100,0.58,1.26,poucos_processos,22804.9,23045.1,24830.4,27948.1,22807.2,23043.8,24972.2,27892.7
 LowVariance__RandomForest,LowVariance__RandomForest,1024,5,2000,33791.9,37747.2,37417.1,38022.4,40729.6,39646.4,41851.3,10,0.111,1601,100,0.86,1.54,poucos_processos,37449.7,38019.2,39647.0,41795.5,37451.7,38022.4,39693.1,41791.5
-LowVariance__SVM,LowVariance__SVM_B1,1,5,2000,6663.3,6830.3,6795.7,6854.5,7283.9,6991.4,8282.3,11,0.538,601,100,0.47,2.83,poucos_processos,6795.3,6854.5,6989.1,8435.7,6796.6,6855.6,6983.9,8437.7
+LowVariance__SVM,LowVariance__SVM_1_linha,1,5,2000,6663.3,6830.3,6795.7,6854.5,7283.9,6991.4,8282.3,11,0.538,601,100,0.47,2.83,poucos_processos,6795.3,6854.5,6989.1,8435.7,6796.6,6855.6,6983.9,8437.7
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1,5,2000,4165.9,4303.5,4289.5,4316.7,4521.5,4405.8,5151.9,27,0.605,492,100,0.22,2.38,poucos_processos,4288.5,4317.9,4403.6,5177.4,4288.3,4320.0,4401.8,5201.7
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1024,5,2000,7650.0,8682.6,8628.7,8729.0,8964.4,8926.3,9008.6,10,0.033,1872,100,0.49,0.43,poucos_processos,8628.8,8729.0,8926.3,9008.8,8628.8,8735.1,8926.3,9008.9
 MutualInformation-k5__RandomForest,MutualInformation-k5__RandomForest,1,5,2000,22452.4,23157.9,22788.9,23349.7,26300.2,24844.0,27725.7,10,0.374,911,100,1.58,2.16,poucos_processos,22792.7,23349.7,24841.8,27752.7,22795.5,23367.0,24844.0,27600.4
@@ -768,7 +764,7 @@ MutualInformation-k8__GradientBoosting,MutualInformation-k8__GradientBoosting,1,
 MutualInformation-k8__GradientBoosting,MutualInformation-k8__GradientBoosting,1024,5,2000,7969.0,9005.6,8949.8,9047.6,9285.7,9248.8,9328.0,10,0.047,1821,100,0.31,0.26,poucos_processos,8950.4,9044.7,9246.1,9328.0,8950.9,9044.7,9247.2,9328.5
 MutualInformation-k8__RandomForest,MutualInformation-k8__RandomForest,1,5,2000,22717.5,23301.4,23023.4,23387.6,26910.7,25175.5,28111.7,10,0.453,753,100,1.03,1.91,poucos_processos,23011.2,23387.6,25175.5,28026.6,23016.5,23387.8,25543.3,28110.5
 MutualInformation-k8__RandomForest,MutualInformation-k8__RandomForest,1024,5,2000,33304.1,37330.7,37085.5,37547.4,39709.6,38716.2,40908.9,10,0.11,1603,100,0.5,1.05,poucos_processos,37116.8,37543.0,38713.9,40793.6,37116.8,37545.4,38767.8,40780.6
-LowVariance__SVM,SVM_B1024,1024,10,1000,321058.9,326387.5,323030.7,326797.0,327166.6,324496.0,329428.4,10,0.24,613,100,0.63,0.64,,323050.1,326809.0,324533.2,329497.8,323062.0,326808.8,324546.5,329452.1
+LowVariance__SVM,SVM_1024_linhas,1024,10,1000,321058.9,326387.5,323030.7,326797.0,327166.6,324496.0,329428.4,10,0.24,613,100,0.63,0.64,,323050.1,326809.0,324533.2,329497.8,323062.0,326808.8,324546.5,329452.1
 LowVariance__DecisionTree,controle_fim,1,3,2000,3532.2,3667.7,3647.1,3688.9,3850.1,3742.1,4303.4,21,0.62,468,60,0.49,2.03,poucos_processos,3646.3,3689.5,3739.1,4327.4,3647.1,3690.7,3741.8,4452.0
 LowVariance__DecisionTree,controle_fim,1024,3,2000,4859.2,5034.7,5006.1,5057.0,5318.0,5170.4,6121.1,10,0.552,577,60,0.43,1.41,poucos_processos,5006.9,5057.7,5163.1,6136.9,5006.0,5061.9,5155.4,6128.4
 LowVariance__DecisionTree,controle_inicio,1,3,2000,3482.8,3613.4,3595.0,3635.1,3808.7,3702.4,4363.4,20,0.606,491,60,0.47,2.13,poucos_processos,3593.1,3636.5,3699.4,4377.2,3592.9,3634.8,3699.4,4377.2
@@ -801,21 +797,21 @@ LowVariance__RandomForest,LowVariance__RandomForest,1,108.06,90.69,131.63,11.77,
 LowVariance__RandomForest,LowVariance__RandomForest,2,108.1,90.72,131.6,11.8,96.29,78.92,11.8
 LowVariance__RandomForest,LowVariance__RandomForest,3,108.05,90.68,131.63,11.76,96.29,78.92,11.76
 LowVariance__RandomForest,LowVariance__RandomForest,4,108.07,90.7,131.64,11.78,96.29,78.92,11.78
-LowVariance__SVM_B1,LowVariance__SVM,0,97.07,79.7,120.44,0.79,96.28,78.9,0.8
-LowVariance__SVM_B1,LowVariance__SVM,1,97.08,79.7,120.58,0.8,96.28,78.9,0.8
-LowVariance__SVM_B1,LowVariance__SVM,2,97.08,79.7,120.56,0.8,96.28,78.9,0.8
-LowVariance__SVM_B1,LowVariance__SVM,3,97.08,79.7,120.37,0.8,96.28,78.9,0.8
-LowVariance__SVM_B1,LowVariance__SVM,4,97.07,79.69,120.56,0.79,96.28,78.9,0.79
-LowVariance__SVM_B1024_a,LowVariance__SVM,0,97.05,79.68,120.54,0.88,96.17,78.79,0.89
-LowVariance__SVM_B1024_a,LowVariance__SVM,1,97.06,79.68,120.55,0.89,96.17,78.79,0.89
-LowVariance__SVM_B1024_a,LowVariance__SVM,2,97.06,79.68,120.43,0.89,96.17,78.79,0.89
-LowVariance__SVM_B1024_a,LowVariance__SVM,3,97.07,79.69,120.55,0.9,96.17,78.79,0.9
-LowVariance__SVM_B1024_a,LowVariance__SVM,4,97.06,79.69,120.41,0.9,96.17,78.79,0.89
-LowVariance__SVM_B1024_b,LowVariance__SVM,0,97.06,79.68,120.41,0.87,96.19,78.81,0.88
-LowVariance__SVM_B1024_b,LowVariance__SVM,1,97.07,79.69,120.54,0.88,96.19,78.81,0.88
-LowVariance__SVM_B1024_b,LowVariance__SVM,2,97.08,79.7,120.58,0.89,96.19,78.81,0.89
-LowVariance__SVM_B1024_b,LowVariance__SVM,3,97.09,79.71,120.55,0.91,96.19,78.81,0.91
-LowVariance__SVM_B1024_b,LowVariance__SVM,4,97.08,79.71,120.43,0.9,96.19,78.81,0.9
+LowVariance__SVM_1_linha,LowVariance__SVM,0,97.07,79.7,120.44,0.79,96.28,78.9,0.8
+LowVariance__SVM_1_linha,LowVariance__SVM,1,97.08,79.7,120.58,0.8,96.28,78.9,0.8
+LowVariance__SVM_1_linha,LowVariance__SVM,2,97.08,79.7,120.56,0.8,96.28,78.9,0.8
+LowVariance__SVM_1_linha,LowVariance__SVM,3,97.08,79.7,120.37,0.8,96.28,78.9,0.8
+LowVariance__SVM_1_linha,LowVariance__SVM,4,97.07,79.69,120.56,0.79,96.28,78.9,0.79
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,0,97.05,79.68,120.54,0.88,96.17,78.79,0.89
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,1,97.06,79.68,120.55,0.89,96.17,78.79,0.89
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,2,97.06,79.68,120.43,0.89,96.17,78.79,0.89
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,3,97.07,79.69,120.55,0.9,96.17,78.79,0.9
+LowVariance__SVM_1024_linhas_metade_a,LowVariance__SVM,4,97.06,79.69,120.41,0.9,96.17,78.79,0.89
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,0,97.06,79.68,120.41,0.87,96.19,78.81,0.88
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,1,97.07,79.69,120.54,0.88,96.19,78.81,0.88
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,2,97.08,79.7,120.58,0.89,96.19,78.81,0.89
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,3,97.09,79.71,120.55,0.91,96.19,78.81,0.91
+LowVariance__SVM_1024_linhas_metade_b,LowVariance__SVM,4,97.08,79.71,120.43,0.9,96.19,78.81,0.9
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,0,100.58,83.2,124.1,5.21,95.37,78.0,5.21
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,1,100.58,83.21,124.16,5.21,95.37,78.0,5.21
 MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,2,100.58,83.2,124.13,5.2,95.37,78.0,5.2

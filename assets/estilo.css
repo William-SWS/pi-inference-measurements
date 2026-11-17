@@ -383,3 +383,31 @@ code, kbd, samp { font-family: var(--font-mono); font-size: .9em; background: va
   .lt-item::before { left: -17px; width: 16px; }
 }
 [data-dash-source-state=refreshing] { opacity: .5; }
+
+/* Páginas de texto com figuras (validação do método, Pareto, painel do projeto) */
+.texto.largo { max-width: 1040px; }
+.texto.largo p, .texto.largo li { max-width: 80ch; }
+.texto .fig { margin: 14px 0 6px; }
+.texto .fig img { display: block; width: 100%; height: auto; background: #fff; border: 1px solid var(--color-border-line); border-radius: 4px; }
+.texto .fig figcaption { margin-top: 6px; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); line-height: 1.5; max-width: 90ch; }
+.texto .lp-tabela-rolagem { margin: 10px 0 14px; }
+.texto .lp-tabela td, .texto .lp-tabela th { white-space: normal; }
+.texto .lp-tabela td { color: var(--color-fg); }
+.texto h3 { font-size: var(--cds-font-size-body, 1rem); font-weight: var(--cds-font-weight-medium); margin: 22px 0 6px; }
+.painel-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 12px 0 18px; max-width: none; }
+.painel-cartao { border: 1px solid var(--color-border-line); border-radius: 4px; padding: 10px 12px; background: var(--color-panel); }
+.painel-cartao .rot { font-family: var(--font-mono); font-size: var(--cds-font-size-micro); color: var(--color-fg-muted); letter-spacing: .02em; display: block; margin-bottom: 4px; }
+.painel-cartao b { font-weight: 600; }
+.painel-cartao p { margin: 6px 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.estado { display: inline-block; padding: 1px 8px; border-radius: 10px; font-family: var(--font-mono); font-size: var(--cds-font-size-micro); border: 1px solid var(--color-border-strong); white-space: nowrap; }
+.estado-feito { border-color: var(--color-ok); color: var(--color-ok); }
+.estado-novo { border-color: var(--color-accent); color: var(--color-accent); }
+.estado-depende { border-color: var(--color-warn); color: var(--color-warn-fg); }
+.estado-livre { border-color: var(--color-fg-muted); color: var(--color-fg-muted); }
+.estado-depois { border-color: var(--color-border-strong); color: var(--color-fg-muted); border-style: dashed; }
+
+.site-painel { font-size: var(--cds-font-size-caption); color: var(--color-accent); white-space: nowrap; }
+
+/* Tabelas de texto (painel, validação, Pareto): alinhadas à esquerda e em fonte de texto */
+.texto .lp-tabela th, .texto .lp-tabela td { text-align: left; vertical-align: top; }
+.texto .lp-tabela td { font-family: var(--font-sans); font-variant-numeric: tabular-nums; }

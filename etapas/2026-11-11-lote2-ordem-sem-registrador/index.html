@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ajustes do lote2 · Medições no Raspberry Pi</title>
+<title>Ajustes do lote2 · Medições no rasp</title>
 <link rel="stylesheet" href="../../assets/estilo.css">
 </head>
 <body data-raiz="../../" data-etapa="2026-11-11-lote2-ordem-sem-registrador">
@@ -11,15 +11,15 @@
 <nav id="site-nav" aria-label="Navegação do site"></nav>
 <main class="texto">
   <p id="etapa-meta"></p>
-  <h1>Lote2: sem registrador ao lado, ordem A B C C B A e memória de todas as repetições</h1>
+  <h1>Lote2: sem registrador ao lado, ordem espelhada e memória de todas as repetições</h1>
 
   <h2>Contexto</h2>
-  <p>No lote1, as execuções c1 e c2 foram medidas com um laço ao lado que lia a temperatura e a frequência da CPU a cada 1 s (o "registrador ao lado"). Ele é um exemplo de efeito do observador: a própria medição altera o que é medido. Além disso, o lote1 só gravou a memória da primeira repetição de cada execução.</p>
+  <p>No lote1, as duas execuções com registrador ao lado (ondemand e performance) foram medidas com um laço ao lado que lia a temperatura e a frequência da CPU a cada 1 s (o "registrador ao lado"). Ele é um exemplo de efeito do observador: a própria medição altera o que é medido. Além disso, o lote1 só gravou a memória da primeira repetição de cada execução.</p>
 
   <h2>O que mudou no lote2</h2>
   <ul>
     <li><strong>Sem registrador ao lado</strong> durante as medições. A temperatura passou a ser lida só antes e depois de cada execução.</li>
-    <li><strong>Ordem A B C C B A</strong>, com A = desktop ligado (<code>ondemand</code>), B = desktop desligado com <code>ondemand</code> e C = desktop desligado com <code>performance</code>. A ordem espelhada serve para compensar o aquecimento do Pi ao longo da bateria. Ela não foi sorteada.</li>
+    <li><strong>Ordem espelhada</strong>: desktop ligado (<code>ondemand</code>), desktop desligado com <code>ondemand</code>, desktop desligado com <code>performance</code>, e depois o inverso (as seis execuções, nesta ordem). A ordem espelhada serve para compensar o aquecimento do rasp ao longo da bateria. Ela não foi sorteada.</li>
     <li><strong>Memória de todas as repetições</strong> gravada (em JSONL), não só a da primeira.</li>
   </ul>
 

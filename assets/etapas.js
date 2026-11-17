@@ -20,8 +20,8 @@ window.ETAPAS = [
     data: '2026-11-11',
     tipo: 'nota',
     status: 'Aplicada',
-    titulo: 'Lote2: sem registrador ao lado, ordem A B C C B A e memória de todas as repetições',
-    resumo: 'Ajustes no método depois do lote1, para tirar o efeito do observador e compensar o aquecimento do Pi.'
+    titulo: 'Lote2: sem registrador ao lado, ordem espelhada e memória de todas as repetições',
+    resumo: 'Ajustes no método depois do lote1, para tirar o efeito do observador e compensar o aquecimento do rasp.'
   },
   {
     id: '2026-11-11-lote1-lote2',
@@ -40,11 +40,35 @@ window.ETAPAS = [
     resumo: 'Latência em processo e memória de 7 modelos (11 configurações com os seletores) na condição de referência: desktop desligado e governor performance.'
   },
   {
-    id: '2026-11-13-sla-http',
+    id: '2026-11-13-latencia-http-loopback',
     data: '2026-11-13',
     tipo: 'medicao',
     status: 'Exploratória',
-    titulo: 'SLA via HTTP: o serviço responde em até 10 ms?',
-    resumo: 'Latência do serviço de inferência chamado por HTTP no próprio Pi (loopback), com 7 modelos em 5 rodadas: veredito do p95 ≤ 10 ms, custo do HTTP e do JSON e deriva com a temperatura.'
+    titulo: 'Latência via HTTP em loopback no rasp',
+    resumo: 'Latência do serviço de inferência chamado por HTTP no próprio rasp (loopback, sem rede real), com 7 modelos em 5 rodadas: p95 com intervalo de confiança ao lado do p95 em processo, custo do HTTP e do JSON e deriva com a temperatura.'
+  },
+  {
+    id: '2026-11-14-pareto-exploratorio',
+    data: '2026-11-14',
+    tipo: 'medicao',
+    status: 'Exploratória',
+    titulo: 'Pareto exploratório de três eixos: MCC, p95 e ΔPSS',
+    resumo: 'Rascunho da fronteira de Pareto de 7 modelos com as medições que já existem, em processo e via HTTP em loopback. O Pareto final usa os dados da rodada de 16/11.'
+  },
+  {
+    id: '2026-11-15-validacao-do-metodo-de-medicao',
+    data: '2026-11-15',
+    tipo: 'medicao',
+    status: 'Validada',
+    titulo: 'Validação do método de medição',
+    resumo: 'Seis experimentos que testam a régua, não os modelos: mesmo processo × processo novo, custo do medidor de memória, pico amostrado × contador, zerar o contador de pico, SVM com 1 × 4 threads e repetições necessárias para o IC (decisão: R = 6).'
+  },
+  {
+    id: '2026-11-16-rodada-final-sem-estresse',
+    data: '2026-11-16',
+    tipo: 'medicao',
+    status: 'Validada',
+    titulo: 'Rodada final sem estresse: latência e memória de 7 modelos',
+    resumo: 'Latência em processo e via HTTP em loopback e memória dos 7 modelos LowVariance, com o método validado: as 14 meias-larguras do p95 ficaram dentro de 1,0%. Os números alimentam o Pareto final e seguem exploratórios até ele.'
   }
 ];

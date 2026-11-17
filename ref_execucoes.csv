@@ -1,0 +1,15 @@
+rotulo,configuracao,seletor,modelo,lotes,n_chamadas,aquecimento,repeticoes,hora_antes,temp_antes_C,hora_depois,temp_depois_C,throttled_antes,throttled_depois,governor,freq_antes_kHz,freq_depois_kHz,duracao_min,disco_KiB
+LowVariance__GaussianNB,LowVariance__GaussianNB,LowVariance,GaussianNB,1/1024,2000,200,5,19:01:00,55.0,19:04:12,59.9,0x0,0x0,performance,1800000,1800000,3.2,3.8
+LowVariance__GradientBoosting,LowVariance__GradientBoosting,LowVariance,GradientBoosting,1/1024,2000,200,5,19:08:38,56.4,19:11:31,60.8,0x0,0x0,performance,1800000,1800000,2.9,916.6
+LowVariance__LDA,LowVariance__LDA,LowVariance,LDA,1/1024,2000,200,5,18:58:06,53.0,19:00:30,57.9,0x0,0x0,performance,1800000,1800000,2.4,4.5
+LowVariance__QDA,LowVariance__QDA,LowVariance,QDA,1/1024,2000,200,5,19:04:42,56.4,19:08:08,60.8,0x0,0x0,performance,1800000,1800000,3.4,11.9
+LowVariance__RandomForest,LowVariance__RandomForest,LowVariance,RandomForest,1/1024,2000,200,5,19:18:34,57.9,19:29:25,63.7,0x0,0x0,performance,1800000,1800000,10.8,4090.2
+LowVariance__SVM_B1,LowVariance__SVM,LowVariance,SVM,1,2000,200,5,19:52:21,64.7,19:54:02,66.7,0x0,0x0,performance,1800000,1800000,1.7,419.1
+LowVariance__SVM_B1024_a,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,19:54:32,63.7,20:22:18,74.0,0x0,0x0,performance,1800000,1800000,27.8,419.1
+LowVariance__SVM_B1024_b,LowVariance__SVM,LowVariance,SVM,1024,1000,20,5,20:27:48,63.7,20:55:35,75.4,0x0,0x0,performance,1800000,1800000,27.8,419.1
+MutualInformation-k5__GradientBoosting,MutualInformation-k5__GradientBoosting,MutualInformation,GradientBoosting,1/1024,2000,200,5,19:12:01,56.0,19:14:45,60.8,0x0,0x0,performance,1800000,1800000,2.7,902.8
+MutualInformation-k5__RandomForest,MutualInformation-k5__RandomForest,MutualInformation,RandomForest,1/1024,2000,200,5,19:29:55,60.8,19:40:33,66.2,0x0,0x0,performance,1800000,1800000,10.6,4523.7
+MutualInformation-k8__GradientBoosting,MutualInformation-k8__GradientBoosting,MutualInformation,GradientBoosting,1/1024,2000,200,5,19:15:15,57.4,19:18:04,60.3,0x0,0x0,performance,1800000,1800000,2.8,904.5
+MutualInformation-k8__RandomForest,MutualInformation-k8__RandomForest,MutualInformation,RandomForest,1/1024,2000,200,5,19:41:03,61.8,19:51:51,67.2,0x0,0x0,performance,1800000,1800000,10.8,4196.4
+controle_fim,LowVariance__DecisionTree,LowVariance,DecisionTree,1/1024,2000,200,3,20:56:05,71.5,20:57:30,72.0,0x0,0x0,performance,1800000,1800000,1.4,26.0
+controle_inicio,LowVariance__DecisionTree,LowVariance,DecisionTree,1/1024,2000,200,3,18:56:11,51.1,18:57:35,55.0,0x0,0x0,performance,1800000,1800000,1.4,26.0

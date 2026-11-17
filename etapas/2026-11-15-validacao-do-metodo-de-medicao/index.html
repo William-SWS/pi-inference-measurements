@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validação do método de medição · Medições no rasp</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+</head>
+<body data-raiz="../../" data-etapa="2026-11-15-validacao-do-metodo-de-medicao">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto largo">
+  <p id="etapa-meta"></p>
+  <h1>Validação do método de medição no rasp</h1>
+  <p>Esta bateria <b>testa a régua, não os modelos</b>. Antes de medir latência e memória de todos os modelos, ela confere se o jeito de medir é confiável: se processo novo ou reaproveitado muda o número, se o medidor de memória atrapalha a latência, se o pico de memória lido é o pico real, se dá para zerar o contador de pico, se o número de threads do SVM importa e quantos processos são necessários para o intervalo de confiança (IC) do p95 ficar estreito.</p>
+  <p class="discreto">Nenhum número desta página é o resultado de latência ou de memória do projeto: as medições de latência e de memória feitas até agora são exploratórias, e só o método foi validado. As figuras têm texto em inglês e ficam em <code>figuras/</code> na raiz do site; as tabelas e o texto estão em português.</p>
+
+  <h2>Condições comuns</h2>
+  <ul>
+    <li><b>Máquina:</b> o rasp (Raspberry Pi 4 Model B), kernel 6.18.60+rpt-rpi-v8, na condição de referência: desktop desligado, governor <code>performance</code> nos quatro núcleos, interrupções de rede no núcleo 0.</li>
+    <li><b>Cada célula é um processo novo</b>, dentro de um escopo do systemd com contabilidade de memória e preso a um núcleo: o programa que mede no núcleo 2, o medidor de memória no núcleo 1, 1 thread. A exceção é o SVM com 1 × 4 threads, que usa os núcleos 0 a 3.</li>
+    <li><b>Modelos medidos:</b> árvore de decisão, Random Forest e SVM, todos com o seletor LowVariance.</li>
+    <li><b>Ordem sorteada</b> (semente 42). Uma célula seria descartada se o registro <code>throttled</code> mudasse ou tivesse algum dos 4 bits baixos ligados.</li>
+    <li><b>Resultado do dia:</b> 88 células válidas, nenhuma descartada, <code>throttled</code> sempre <code>0x0</code>. A placa ficou entre 54,0 e 77,4 °C (limite de redução de frequência: 80 °C, não atingido). Os experimentos principais rodaram com a placa a 70–77 °C; a regra antiga de invalidar célula com temperatura inicial ≥ 55 °C foi relaxada para esta bateria, por decisão da autora.</li>
+    <li><b>Medidor de memória (amostrador):</b> lê o consumo do escopo a cada 1 segundo.</li>
+  </ul>
+
+  <h2>Resumo das decisões</h2>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Experimento</th><th>O que se mediu</th><th>Resultado</th><th>Limite</th><th>Veredito</th><th>Efeito no protocolo</th></tr></thead>
+    <tbody>
+      <tr><td>Mesmo processo × processo novo</td><td>diferença entre as medianas do p95 (mesmo − novo ÷ novo), 10 unidades contra 10</td><td>+0,21% (árvore); +0,05% (Random Forest)</td><td>±5%</td><td>não detectado</td><td>nenhum: o protocolo já usa processo novo</td></tr>
+      <tr><td>Custo do medidor de memória</td><td>diferença pareada do p95 (com − sem medidor), mediana de 10 blocos</td><td>+43,47 µs (IC 95%: +17,09 a +56,93)</td><td>73,19 µs (o maior entre 2% do p95 e 5 µs)</td><td>fundir</td><td>latência e memória podem ser medidas na mesma bateria</td></tr>
+      <tr><td>Pico amostrado × contador do sistema</td><td>maior lacuna entre o contador de pico e o máximo amostrado</td><td>0,28% (o pico subiu só 0,25 MiB na rajada)</td><td>5%</td><td>a amostra vale (teste fraco)</td><td>o máximo amostrado pode entrar nas tabelas, só para memória estável</td></tr>
+      <tr><td>Zerar o contador de pico</td><td>5 conferências do reset, com 100 MiB</td><td>5 de 5 passam</td><td>todas</td><td>passa</td><td>o reset funciona se for feito pelo mesmo descritor de arquivo</td></tr>
+      <tr><td>SVM com 1 × 4 threads</td><td>diferença entre as medianas do p50 (4 − 1 thread ÷ 1 thread)</td><td>+0,47% (1 linha por chamada); +1,08% (1.024 linhas)</td><td>±5%</td><td>não muda</td><td>SVM fica fora do subexperimento de threads</td></tr>
+      <tr><td>Repetições necessárias para o IC</td><td>meia-largura do IC 95% do p95, em % do p95</td><td>árvore: R mínimo 5, bloco 29; Random Forest: R mínimo 3, bloco 10</td><td>1,0%</td><td>decisão 187: R = 6, bloco 29</td><td>6 processos de 10.000 chamadas por configuração</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>1. Mesmo processo × processo novo</h2>
+  <p><b>Pergunta:</b> repetir a medição dentro de um processo já aquecido dá o mesmo p95 que usar um processo novo a cada vez? <b>Como:</b> para cada modelo, 2 rodadas; em cada uma, 1 processo "mesmo" com 5 laços de 2.000 chamadas e 5 processos "novo" com 1 laço de 2.000 chamadas cada; 200 chamadas de aquecimento, 1 linha por chamada.</p>
+  <figure class="fig"><img src="../../figuras/1-mesmo-processo-vs-processo-novo.png" alt="p95 por unidade, no mesmo processo e em processo novo, para a árvore e a Random Forest, com as medianas escritas" loading="lazy">
+    <figcaption>p95 de cada unidade. Árvore: mediana de 3.679,9 µs no mesmo processo contra 3.672,1 µs em processo novo (+0,21%). Random Forest: 23,087 ms contra 23,075 ms (+0,05%). Limite de ±5%.</figcaption></figure>
+  <p><b>Limitação:</b> o teste é fraco no grupo "mesmo processo", porque as 10 unidades dele vêm de só 2 processos. Na Random Forest, os 5 laços do processo da rodada 1 deram 22,68 a 22,77 ms e os da rodada 2, 23,40 a 23,47 ms (cerca de 3,3% de diferença entre processos): a variação que importa é a <em>entre processos</em>, e é ela que o experimento 6 mede. "Não detectado" não é "equivalência provada": não há IC da diferença, só a comparação das medianas.</p>
+
+  <h2>2. Custo do medidor de memória</h2>
+  <p><b>Pergunta:</b> o medidor que lê a memória a cada 1 s atrasa as predições? <b>Como:</b> árvore, 1 linha por chamada, 10.000 chamadas por processo; 10 blocos de 2 processos (com e sem medidor, ordem sorteada dentro do bloco). O veredito "fundir" exige que o limite superior do IC 95% da diferença fique abaixo de 73,19 µs.</p>
+  <figure class="fig"><img src="../../figuras/2-custo-do-medidor-de-memoria.png" alt="p95 pareado com e sem medidor de memória nos 10 blocos, e diferença mediana por percentil" loading="lazy">
+    <figcaption>(a) p95 de cada bloco, sem e com o medidor (medianas 3.659,5 e 3.696,2 µs). (b) Diferença mediana pareada por percentil: p50 +13,3 µs; p95 +43,47 µs (IC 95%: +17,09 a +56,93); p99 +848,3 µs.</figcaption></figure>
+  <p><b>Limitações:</b> o efeito existe (o IC fica acima de zero), mas é pequeno no p95, cerca de 1,2% do p95 sem medidor. <b>A cauda sobe muito mais:</b> o p99 sobe +848,3 µs; o critério olha só o p95. Só a árvore, só o intervalo de 1 s, e o medidor ficou em outro núcleo (medidor mais rápido ou no mesmo núcleo não foi testado).</p>
+
+  <h2>3. Pico amostrado × contador do sistema</h2>
+  <p><b>Pergunta:</b> o maior valor visto pelo medidor (a cada 1 s) é o pico real, registrado pelo contador de pico do sistema? <b>Como:</b> Random Forest, 1 linha por chamada, uma rajada de 10.000 chamadas (cerca de 237 s) em cada um de 3 processos; o contador é zerado antes da rajada e comparado com o maior valor amostrado na janela.</p>
+  <figure class="fig"><img src="../../figuras/3-pico-amostrado-vs-contador.png" alt="Primeira amostra, máximo amostrado e contador de pico em cada um dos 3 processos" loading="lazy">
+    <figcaption>Lacunas de 0,00%, 0,28% e 0,00% (228 a 229 amostras por processo). Limite de 5%.</figcaption></figure>
+  <p><b>Limitação:</b> o teste quase não foi posto à prova. O pico subiu no máximo 0,25 MiB na janela (por exemplo, de 90,188 para 90,438 MiB no processo 1): os dois números concordam porque a memória da Random Forest é estável, não porque a amostragem pegaria um pico curto. O resultado vale para memória estável, não para picos transitórios.</p>
+
+  <h2>4. Zerar o contador de pico</h2>
+  <p><b>Pergunta:</b> dá para zerar o contador de pico entre duas medições, no mesmo escopo, e ele voltar a contar certo? <b>Como:</b> um processo mede a memória base, aloca 100 MiB, lê o pico, libera, zera o contador pelo mesmo descritor de arquivo, lê de novo, aloca mais 30 MiB e, por fim, lê o pico por um descritor novo. Há 5 conferências automáticas.</p>
+  <figure class="fig"><img src="../../figuras/4-leituras-do-contador-de-pico.png" alt="As seis leituras do contador de pico, em MiB" loading="lazy">
+    <figcaption>As 5 conferências passam: base 76,941 MiB; pico 177,191 MiB depois de alocar 100 MiB; 77,266 MiB logo depois de zerar; 106,938 MiB depois de alocar mais 30 MiB. Um descritor novo ainda vê 177,191 MiB, por isso o reset tem de ser feito pelo mesmo descritor.</figcaption></figure>
+  <p><b>Limitações:</b> uma única célula e um único kernel (6.18.60); alocações grandes de uma vez; não testa zerar muitas vezes seguidas nem com várias threads alocando.</p>
+
+  <h2>5. SVM com 1 × 4 threads</h2>
+  <p><b>Pergunta:</b> o SVM, que usa bibliotecas de álgebra (BLAS e OpenMP), muda de latência com 4 threads? <b>Como:</b> 1 e 4 threads, com 1 linha por chamada (2.000 chamadas) e com 1.024 linhas por chamada (200 chamadas), 5 processos por combinação, ordem sorteada, núcleos 0 a 3. Conferi na saída de cada célula que o ajuste de threads chegou ao BLAS e ao OpenMP.</p>
+  <figure class="fig"><img src="../../figuras/5-svm-1-vs-4-threads.png" alt="p50 de cada processo do SVM com 1 e com 4 threads, nos dois tamanhos de lote" loading="lazy">
+    <figcaption>1 linha por chamada: medianas de 6,695 ms (1 thread) e 6,727 ms (4 threads), +0,47%. 1.024 linhas por chamada: 320,325 e 323,779 ms, +1,08%. Limite de ±5%: o número de threads não muda a latência.</figcaption></figure>
+  <p><b>Limitações:</b> só o SVM, 5 processos por combinação. Com 1.024 linhas, o espalhamento entre processos (319,0 a 324,4 ms, cerca de 1,7%) é do tamanho da diferença medida. Não se mediu por que 4 threads não ajudam; uma hipótese, não testada, é que o SVM do scikit-learn roda em uma thread só. O núcleo 0, usado nas 4 threads, também recebe as interrupções de rede.</p>
+
+  <h2>6. Repetições necessárias para o IC</h2>
+  <p><b>Pergunta:</b> quantos processos (R) são precisos para o IC 95% do p95 ter meia-largura de no máximo 1,0% do p95? <b>Como:</b> 10 processos novos de 10.000 chamadas (1 linha por chamada, sem medidor) para a árvore e 10 para a Random Forest; bootstrap em dois níveis (processos e blocos de chamadas consecutivas, para respeitar a autocorrelação), 2.000 reamostragens, semente 42. O bloco vem da autocorrelação: 29 na árvore e 10 na Random Forest. Para R menor que 10, sorteiam-se até 100 subconjuntos dos 10 processos.</p>
+  <figure class="fig"><img src="../../figuras/6-repeticoes-necessarias-para-o-ic.png" alt="Meia-largura do IC do p95 por número de processos R, com R igual a 6 destacado" loading="lazy">
+    <figcaption>Meia-largura do IC 95% do p95 (% do p95) pelo número de processos R: média sobre os subconjuntos e pior subconjunto. R = 6 (a escolha da decisão 187) está destacado.</figcaption></figure>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>R</th><th>Árvore, média (%)</th><th>Árvore, pior subconjunto (%)</th><th>Random Forest, média (%)</th><th>Random Forest, pior subconjunto (%)</th></tr></thead>
+    <tbody>
+      <tr><td>3</td><td>2,061</td><td>3,20</td><td>0,989</td><td>1,77</td></tr>
+      <tr><td>4</td><td>1,256</td><td>1,79</td><td>0,674</td><td>0,97</td></tr>
+      <tr><td>5</td><td>0,998</td><td>1,32</td><td>0,530</td><td>0,71</td></tr>
+      <tr><td><b>6 (escolhido)</b></td><td><b>0,874</b></td><td><b>1,06</b></td><td><b>0,450</b></td><td><b>0,56</b></td></tr>
+      <tr><td>8</td><td>0,698</td><td>0,78</td><td>0,393</td><td>0,45</td></tr>
+      <tr><td>10</td><td>0,600</td><td>0,60</td><td>0,377</td><td>0,38</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p><b>Decisão 187:</b> R = 6 processos de 10.000 chamadas e bloco 29. Pela regra pré-registrada, o R mínimo é 5 na árvore (média 0,998%, por pouco) e 3 na Random Forest (média 0,989%, também por pouco), e vale o maior bloco; a autora escolheu R = 6 para ter folga sobre o limite de 1,0%.</p>
+  <figure class="fig"><img src="../../figuras/7-p95-por-processo.png" alt="p95 de cada um dos 10 processos da árvore e da Random Forest" loading="lazy">
+    <figcaption>p95 de cada um dos 10 processos. Mediana de 3,6543 ms na árvore e de 23,0065 ms na Random Forest.</figcaption></figure>
+  <p><b>Limitações:</b> os dois R mínimos passam com margem estreita e o pior subconjunto passa do limite; com R = 6, o pior subconjunto da árvore ainda chega a 1,06%. Perto de R = 10, os subconjuntos reaproveitam os mesmos 10 processos (R = 10 tem um só), então essas estimativas não são independentes. A grade começa em R = 3, e não se sabe se menos de 3 serviria. Vale só para o regime isolado, 1 linha por chamada e sem estresse; o bloco 29 não foi calibrado para o HTTP em loopback.</p>
+
+  <h2>Temperatura das execuções</h2>
+  <p>A figura abaixo junta a temperatura da placa antes e depois de cada execução da bateria de referência (em processo, 14 execuções), das 35 execuções do HTTP em loopback e a faixa de cada experimento desta validação. Nenhuma passou de 77,4 °C.</p>
+  <figure class="fig"><img src="../../figuras/10-temperatura-por-execucao.png" alt="Temperatura da placa por execução nas três baterias" loading="lazy">
+    <figcaption>Círculo vazio: temperatura antes da execução; cheio: depois. Tracejado: 80 °C, início da redução de frequência. Para a validação, só há mínimo e máximo por experimento nos dados agregados.</figcaption></figure>
+
+  <h2>O que esta bateria não cobre</h2>
+  <ul>
+    <li>Nenhum estresse: tudo no regime isolado, sem carga de CPU, de memória ou de rede.</li>
+    <li>Só em processo: nada via HTTP em loopback.</li>
+    <li>Poucos modelos por experimento (árvore, Random Forest e SVM), não os 11 da bateria de referência.</li>
+    <li>Um rasp, um dia, uma temperatura alta (70 a 77 °C na maior parte).</li>
+    <li>Sem comparação do custo de CPU do medidor, só da latência.</li>
+  </ul>
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+</body>
+</html>

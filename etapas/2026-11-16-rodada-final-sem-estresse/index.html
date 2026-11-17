@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rodada final sem estresse · Medições no rasp</title>
+<link rel="stylesheet" href="../../assets/estilo.css">
+</head>
+<body data-raiz="../../" data-etapa="2026-11-16-rodada-final-sem-estresse">
+<div class="site">
+<nav id="site-nav" aria-label="Navegação do site"></nav>
+<main class="texto largo">
+  <p id="etapa-meta"></p>
+  <h1>Rodada final sem estresse: latência e memória de 7 modelos</h1>
+  <p>Esta rodada mede quanto cada modelo <b>custa</b> no rasp (o Raspberry Pi 4), em tempo e em memória, com o método validado na <a href="../2026-11-15-validacao-do-metodo-de-medicao/">etapa de 15/11</a>. São estes os números que alimentam o Pareto final (ticket 21), que vai cruzar o custo com a qualidade (MCC) de cada modelo; a qualidade não entra nesta página. Até o Pareto, os resultados continuam <b>exploratórios</b>.</p>
+  <p class="discreto">As figuras têm texto em inglês e ficam em <code>figuras/</code> na raiz do site; as tabelas e o texto estão em português. Os termos técnicos (p95, IC, PSS, ΔPSS, HTTP, MiB, µs) estão explicados em <a href="#como-ler">Como ler estes números</a>, mais abaixo.</p>
+
+  <h2>Condições comuns</h2>
+  <ul>
+    <li><b>Modelos:</b> os 7 com o seletor de atributos LowVariance: árvore de decisão, LDA (análise discriminante linear), GradientBoosting, GaussianNB (Naive Bayes gaussiano), QDA (análise discriminante quadrática), SVM (máquina de vetores de suporte) e Random Forest. Os 4 com o seletor MutualInformation ficaram fora, porque ainda não têm MCC no teste.</li>
+    <li><b>Três medições, todas no regime isolado</b> (sem estresse, sem MQTT, sem rede real):
+      <ul>
+        <li><b>Latência em processo:</b> o tempo de cada <code>predict</code> de 1 linha dentro do programa, sem servidor, no núcleo 2, <b>sem</b> o medidor de memória ao lado (a validação mostrou que ele sobe o p95 em cerca de 1,2% e o p99 em centenas de microssegundos).</li>
+        <li><b>Latência via HTTP em loopback:</b> HTTP é o protocolo de pedidos e respostas da web. Um cliente no próprio rasp (núcleo 3) manda <code>POST /predict</code> binário de 1 linha ao serviço de inferência (núcleo 2), um pedido por vez numa conexão persistente, com um servidor novo a cada processo. As predições recebidas são conferidas contra as do treino.</li>
+        <li><b>Memória:</b> PSS, USS e o pico do contador do kernel (<code>memory.peak</code>, zerado depois do aquecimento) de cada modelo e do modelo nulo.</li>
+      </ul>
+    </li>
+    <li><b>Cada medição é um processo novo</b>, num escopo do systemd, preso a um núcleo, com 1 thread. Ordem sorteada (semente 42). Condição de referência: desktop desligado, governor <code>performance</code>, interrupções de rede no núcleo 0.</li>
+    <li><b>Latência:</b> 200 chamadas de aquecimento e <b>10.000 medidas</b> por processo, <b>6 processos</b> por modelo (a Random Forest em processo tem 10, veja abaixo). O intervalo de confiança (IC) do p95 vem de um bootstrap em dois níveis com <b>blocos de 29 chamadas</b>, unido ao IC-t dos p95 por processo.</li>
+    <li><b>Memória:</b> 200 de aquecimento e 2.000 chamadas por processo, 6 processos por modelo e 6 do modelo nulo.</li>
+    <li><b>Quando:</b> de 15/11/2026 às 23:04 a 16/11/2026 às 01:42, mais uma coleta extra da Random Forest em 16/11. <b>136 células válidas, nenhuma descartada</b>, registro <code>throttled</code> sempre <code>0x0</code> (nenhuma redução de frequência). Ao fim de cada processo de latência, a placa estava entre 61,8 e 73,5 °C; a leitura mais baixa no início de um processo foi 55,5 °C, num processo da coleta extra.</li>
+    <li><b>Critério fixado antes de medir:</b> a meia-largura do IC de 95% do p95 tem de ser no máximo <b>1,0%</b> do p95. É o único limite desta página: não há limite de latência no projeto.</li>
+  </ul>
+
+  <h2>Resumo</h2>
+  <div class="painel-grade">
+    <div class="painel-cartao"><span class="rot">PRECISÃO DO p95</span><b>14 de 14 dentro de 1,0%</b><p>Meias-larguras de 0,06% a 0,92%, nos dois jeitos de medir.</p></div>
+    <div class="painel-cartao"><span class="rot">CUSTO DO SERVIÇO HTTP</span><b>+3,37 a +3,50 ms</b><p>Quase o mesmo para os 7 modelos: é o trabalho do serviço, não do modelo.</p></div>
+    <div class="painel-cartao"><span class="rot">MEMÓRIA</span><b>≤ 0,06 MiB</b><p>A maior diferença de ΔPSS entre processos do mesmo modelo.</p></div>
+    <div class="painel-cartao"><span class="rot">CÉLULAS</span><b>136 válidas, 0 descartadas</b><p><code>throttled</code> sempre <code>0x0</code>.</p></div>
+  </div>
+
+  <h2>Resultados por modelo</h2>
+  <p>Uma linha por modelo, do mais rápido ao mais lento pelo p95 em processo. Latência em microssegundos (µs; 1.000 µs = 1 ms): o p95, o IC de 95% entre colchetes e a meia-largura em % do p95. O custo do serviço HTTP é o p95 via HTTP menos o p95 em processo. Memória em MiB (mebibytes): ΔPSS é a mediana de 6 processos; o pico é o do processo inteiro.</p>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Modelo</th><th>p95 em processo (µs)</th><th>p95 via HTTP em loopback (µs)</th><th>Custo do serviço HTTP</th><th>Memória acima do modelo nulo, ΔPSS (MiB)</th><th>Pico de memória (MiB)</th></tr></thead>
+    <tbody>
+      <tr><td>Árvore de decisão</td><td>3.674 [3.645; 3.695] ±0,69%</td><td>7.163 [7.135; 7.184] ±0,35%</td><td>+3.489 µs</td><td>0,95</td><td>80,67</td></tr>
+      <tr><td>LDA</td><td>4.252 [4.215; 4.281] ±0,77%</td><td>7.753 [7.705; 7.811] ±0,69%</td><td>+3.501 µs</td><td>−0,05</td><td>80,32</td></tr>
+      <tr><td>GradientBoosting</td><td>4.371 [4.347; 4.390] ±0,49%</td><td>7.773 [7.754; 7.797] ±0,28%</td><td>+3.402 µs</td><td>4,54</td><td>83,72</td></tr>
+      <tr><td>GaussianNB</td><td>6.021 [5.991; 6.044] ±0,44%</td><td>9.477 [9.426; 9.525] ±0,52%</td><td>+3.456 µs</td><td>0,14</td><td>80,47</td></tr>
+      <tr><td>QDA</td><td>6.087 [6.031; 6.125] ±0,77%</td><td>9.560 [9.529; 9.594] ±0,34%</td><td>+3.472 µs</td><td>0,12</td><td>80,42</td></tr>
+      <tr><td>SVM</td><td>6.855 [6.801; 6.888] ±0,63%</td><td>10.222 [10.215; 10.229] ±0,06%</td><td>+3.367 µs</td><td>0,46</td><td>80,72</td></tr>
+      <tr><td>Random Forest<br><small>10 processos em processo</small></td><td>23.363 [23.023; 23.453] ±0,92%</td><td>26.749 [26.679; 26.797] ±0,22%</td><td>+3.386 µs</td><td>11,12</td><td>90,23</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="discreto">Modelo nulo (a referência da memória): ΔPSS 0 por definição e pico mediano de 80,45 MiB.</p>
+
+  <figure class="fig"><img src="../../figuras/11-latencia-p95-com-ic-rodada-final.png" alt="p95 de cada modelo com a faixa do IC de 95%, em processo e via HTTP em loopback, com eixo quebrado entre 10.700 e 22.700 µs para mostrar a Random Forest" loading="lazy">
+    <figcaption>p95 com a faixa do IC de 95% (sombreada), em processo (círculo azul) e via HTTP em loopback (quadrado laranja). O eixo é quebrado entre 10.700 e 22.700 µs, com a mesma escala dos dois lados, para a Random Forest caber sem esmagar os outros. As faixas são tão estreitas que só a da Random Forest em processo (23.023 a 23.453 µs, ±0,92%) aparece maior que o marcador; a mais estreita é a do SVM via HTTP (10.215 a 10.229 µs, ±0,06%).</figcaption></figure>
+
+  <figure class="fig"><img src="../../figuras/12-memoria-acima-do-modelo-nulo-rodada-final.png" alt="ΔPSS de cada processo e mediana por modelo, com o modelo nulo como referência" loading="lazy">
+    <figcaption>ΔPSS de cada um dos 6 processos (pontos) e a mediana (traço). Random Forest 11,12 MiB, GradientBoosting 4,54, árvore 0,95, SVM 0,46, GaussianNB 0,14, QDA 0,12, LDA −0,05 e o modelo nulo 0,00. Dentro de cada modelo, os processos ficam a no máximo 0,06 MiB uns dos outros (QDA).</figcaption></figure>
+
+  <h2>p50, p99 e média</h2>
+  <p>Os outros resumos da latência, em µs, cada um com a meia-largura do IC de 95%. O p99 é bem menos preciso (meia-largura de 1,52% a 4,72%) porque se apoia em poucos pacotes, os 100 mais lentos de cada 10.000; o critério de precisão de 1,0% foi fixado só para o p95.</p>
+  <div class="lp-tabela-rolagem">
+  <table class="lp-tabela">
+    <thead><tr><th>Modelo</th><th>Medição</th><th>p50</th><th>p95</th><th>p99</th><th>Média</th></tr></thead>
+    <tbody>
+      <tr><td>Árvore de decisão</td><td>em processo</td><td>3.541 ±0,54%</td><td>3.674 ±0,69%</td><td>3.889 ±3,40%</td><td>3.564 ±0,47%</td></tr>
+      <tr><td>LDA</td><td>em processo</td><td>4.109 ±0,48%</td><td>4.252 ±0,77%</td><td>4.514 ±2,72%</td><td>4.132 ±0,55%</td></tr>
+      <tr><td>GradientBoosting</td><td>em processo</td><td>4.237 ±0,31%</td><td>4.371 ±0,49%</td><td>4.642 ±2,95%</td><td>4.262 ±0,33%</td></tr>
+      <tr><td>GaussianNB</td><td>em processo</td><td>5.850 ±0,31%</td><td>6.021 ±0,44%</td><td>6.384 ±2,68%</td><td>5.880 ±0,31%</td></tr>
+      <tr><td>QDA</td><td>em processo</td><td>5.908 ±0,52%</td><td>6.087 ±0,77%</td><td>6.543 ±3,05%</td><td>5.938 ±0,49%</td></tr>
+      <tr><td>SVM</td><td>em processo</td><td>6.694 ±0,51%</td><td>6.855 ±0,63%</td><td>7.268 ±2,48%</td><td>6.721 ±0,45%</td></tr>
+      <tr><td>Random Forest</td><td>em processo</td><td>22.728 ±0,59%</td><td>23.363 ±0,92%</td><td>26.652 ±1,52%</td><td>22.873 ±0,52%</td></tr>
+      <tr><td>Árvore de decisão</td><td>via HTTP em loopback</td><td>6.957 ±0,26%</td><td>7.163 ±0,35%</td><td>7.457 ±2,64%</td><td>6.988 ±0,28%</td></tr>
+      <tr><td>LDA</td><td>via HTTP em loopback</td><td>7.543 ±0,43%</td><td>7.753 ±0,69%</td><td>8.106 ±3,73%</td><td>7.578 ±0,41%</td></tr>
+      <tr><td>GradientBoosting</td><td>via HTTP em loopback</td><td>7.559 ±0,21%</td><td>7.773 ±0,28%</td><td>8.168 ±3,97%</td><td>7.593 ±0,21%</td></tr>
+      <tr><td>GaussianNB</td><td>via HTTP em loopback</td><td>9.272 ±0,27%</td><td>9.477 ±0,52%</td><td>10.149 ±4,72%</td><td>9.312 ±0,28%</td></tr>
+      <tr><td>QDA</td><td>via HTTP em loopback</td><td>9.318 ±0,15%</td><td>9.560 ±0,34%</td><td>10.217 ±4,37%</td><td>9.362 ±0,16%</td></tr>
+      <tr><td>SVM</td><td>via HTTP em loopback</td><td>10.024 ±0,30%</td><td>10.222 ±0,06%</td><td>10.913 ±4,58%</td><td>10.065 ±0,27%</td></tr>
+      <tr><td>Random Forest</td><td>via HTTP em loopback</td><td>26.084 ±0,20%</td><td>26.749 ±0,22%</td><td>30.771 ±2,34%</td><td>26.255 ±0,19%</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>O que os números dizem</h2>
+  <ol>
+    <li><b>A precisão pedida foi alcançada.</b> As 14 meias-larguras do p95 (7 modelos × 2 medições) ficaram entre 0,06% e 0,92%, todas dentro do 1,0% fixado antes de medir.</li>
+    <li><b>O serviço HTTP custa quase o mesmo para todos.</b> Ele acrescenta de 3.367 a 3.501 µs (3,37 a 3,50 ms) ao p95, seja qual for o modelo: é o trabalho do serviço (receber o pedido, montar a matriz, responder), não do modelo. Por isso a ordem dos modelos é a mesma nas duas medições.</li>
+    <li><b>A ordem:</b> árvore de decisão, LDA, GradientBoosting, GaussianNB, QDA, SVM e, bem atrás, a Random Forest, com 6,4 vezes o p95 da árvore em processo (23.363 contra 3.674 µs). A Random Forest é um conjunto de muitas árvores, e cada pacote passa por todas elas.</li>
+    <li><b>Os vizinhos mais próximos.</b> LDA e GradientBoosting diferem 2,8% em processo, e os ICs <b>não se tocam</b> (LDA até 4.281 µs, GradientBoosting a partir de 4.347). Via HTTP quase empatam (7.753 contra 7.773 µs) e os ICs se sobrepõem: o custo fixo do serviço dilui a diferença. GaussianNB e QDA diferem 1,1% em processo, com ICs que se sobrepõem; via HTTP diferem 0,9% e os ICs quase se tocam (GaussianNB até 9.525 µs, QDA a partir de 9.529).</li>
+    <li><b>A memória é estável.</b> Processos do mesmo modelo diferem no máximo 0,06 MiB, então a memória não precisa de IC. Só a Random Forest (11,1 MiB) e o GradientBoosting (4,5 MiB) acrescentam mais de 1 MiB. LDA, QDA e GaussianNB ficam no nível do modelo nulo: o −0,05 MiB do LDA é ruído do tamanho da variação entre processos, não "menos que nada".</li>
+    <li><b>O ±0,06% do SVM via HTTP foi conferido.</b> Os p95 dos 6 processos ficaram entre 10.217,5 e 10.228,1 µs, a 11 µs um do outro; a faixa estreita é real.</li>
+    <li><b>O medidor de memória confere com o contador do kernel.</b> A maior lacuna entre o pico do contador e o máximo amostrado foi de 0,31%.</li>
+  </ol>
+
+  <h2>A Random Forest em processo (decisão 189)</h2>
+  <p>Com os 6 processos previstos, a meia-largura do p95 da Random Forest em processo deu <b>1,14%</b>, acima do limite. Um processo saiu cerca de 2% mais lento: p95 de 23.510 µs, contra 22.975 a 23.206 µs nos outros cinco. A regra fixada antes de medir pedia uma decisão nova nesse caso, e a autora decidiu medir mais 4 processos só desse modelo. Um dos novos (o 8º, com 23.548 µs) também ficou acima do grupo; os outros três deram 23.006, 23.130 e 23.314 µs. Ou seja, a Random Forest tem, de vez em quando, um processo uns 2% mais lento, e isso é variação natural entre processos. Com os 10, a meia-largura ficou em <b>0,92%</b>. <b>A decisão de medir mais veio depois de ver o dado</b>, como a regra previa, e por isso só este modelo, nesta medição, tem 10 processos.</p>
+
+  <details class="lp-glossario" id="como-ler" open>
+    <summary>Como ler estes números</summary>
+    <dl>
+      <dt>Latência</dt><dd>Quanto tempo o rasp leva para classificar um pacote. Aqui é medida em microssegundos (µs): 1.000 µs = 1 milissegundo (ms), um milésimo de segundo.</dd>
+      <dt>Em processo × via HTTP em loopback</dt><dd>Em processo é o modelo sozinho: o programa chama o <code>predict</code> direto. Via HTTP é o caminho completo de um pedido ao serviço de inferência, do envio até a resposta, dentro do próprio rasp; "loopback" é o endereço local da máquina, então o pedido não sai dela e a rede real fica de fora. A diferença entre os dois é o custo do serviço: na árvore, 7.163 − 3.674 = 3.489 µs.</dd>
+      <dt>Percentis (p50, p95, p99)</dt><dd>Ordene os 10.000 tempos de um processo do mais rápido ao mais lento. O p50 (a mediana) é o do meio: o pacote típico. O p95 é o tempo abaixo do qual ficam 95% dos pacotes; mostra os lentos sem se deixar levar por um caso raro. O p99 mostra o 1% mais lento. Exemplo: o p95 de 3.674 µs da árvore quer dizer que 95 de cada 100 pacotes foram classificados em até 3,674 ms.</dd>
+      <dt>Por que vários processos novos</dt><dd>Cada vez que o programa começa do zero, o sistema arruma a memória de um jeito um pouco diferente, e o tempo muda um pouco. Medir 6 processos novos captura essa variação em vez de escondê-la; foi ela que pesou na Random Forest em processo.</dd>
+      <dt>Intervalo de confiança (IC95%)</dt><dd>A faixa onde o valor verdadeiro provavelmente está. Se a medição inteira fosse repetida muitas vezes, o p95 cairia nessa faixa em cerca de 95% das vezes. Exemplo: árvore em processo, de 3.645 a 3.695 µs.</dd>
+      <dt>Meia-largura</dt><dd>Metade da faixa do IC, em % do valor. ±0,5% quer dizer que o número está certo com folga de meio por cento para cima ou para baixo. O limite combinado antes de medir foi 1,0%; aqui, a maior foi 0,92%.</dd>
+      <dt>Bootstrap</dt><dd>É como o IC foi calculado. Em vez de medir tudo de novo mil vezes no rasp, o computador "refaz a medição no papel" milhares de vezes: sorteia com reposição os processos e, dentro de cada um, pedaços das chamadas, e vê quanto o p95 varia entre esses sorteios.</dd>
+      <dt>Blocos de 29 chamadas</dt><dd>Chamadas vizinhas se parecem: se o rasp está um pouco mais lento num instante, as seguintes também ficam. Sortear chamadas soltas trataria cada uma como independente e faria a faixa parecer mais estreita do que é. Por isso se sorteiam blocos de 29 chamadas seguidas; o 29 veio da etapa de validação, que mediu até onde as chamadas ainda se parecem.</dd>
+      <dt>União com o IC-t</dt><dd>No p95, a faixa final junta o bootstrap com um segundo intervalo, calculado a partir do p95 de cada processo, que pesa mais a diferença entre processos. Ficar com a união dos dois é escolher a faixa mais cautelosa.</dd>
+      <dt>PSS, modelo nulo e ΔPSS</dt><dd>PSS é a memória que o processo ocupa, com a parte compartilhada com outros processos dividida entre quem a usa. O modelo nulo é um "modelo de mentira": o mesmo pré-processamento e uma resposta sempre igual, ou seja, tem o Python e as bibliotecas, mas nenhum modelo de verdade. ΔPSS = PSS do modelo − PSS do nulo: o que sobra é o que o modelo acrescenta. MiB é o mebibyte, cerca de 1,05 milhão de bytes.</dd>
+      <dt>Pico de memória</dt><dd>O maior uso de memória do processo inteiro (Python e bibliotecas incluídos) durante as predições, lido do contador do próprio sistema operacional, que não perde nenhum pico. Exemplo: 80,67 MiB na árvore, contra 80,45 MiB do modelo nulo.</dd>
+    </dl>
+    <p>Em resumo: com o método validado, a latência de cada modelo foi medida com precisão melhor que ±1% nos dois jeitos de medir, e a memória é estável; árvore de decisão, LDA e GradientBoosting são os mais rápidos, e a Random Forest é a mais lenta e a que mais acrescenta memória.</p>
+  </details>
+
+  <h2>O que esta rodada não cobre</h2>
+  <ul>
+    <li><b>Estresse:</b> tudo no regime isolado. Com CPU, memória e rede disputadas (ticket 20, para depois), a latência e a variação entre processos tendem a crescer; nada aqui vale para lá.</li>
+    <li><b>Rede real:</b> o HTTP é só em loopback, dentro do rasp; a rede até o gateway não está no número.</li>
+    <li><b>Só 1 linha por chamada</b>, como um detector que decide um pacote por vez.</li>
+    <li><b>Só os 7 modelos LowVariance</b>; os 4 com MutualInformation ficaram fora.</li>
+    <li><b>Um rasp, uma noite, placa quente</b> (61,8 a 73,5 °C ao fim dos processos de latência), sem ventoinha.</li>
+    <li><b>O bloco de 29 foi calibrado em processo</b>, na árvore, e reusado no HTTP sem calibração própria.</li>
+    <li><b>O cliente HTTP roda no próprio rasp</b> (núcleo 3), e o custo dele está dentro do número via HTTP.</li>
+  </ul>
+</main>
+<nav id="site-pager" aria-label="Etapa anterior e próxima"></nav>
+</div>
+<script src="../../assets/etapas.js"></script>
+<script src="../../assets/nav.js"></script>
+</body>
+</html>
